@@ -3,13 +3,14 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import { UsersIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, TrashIcon, CalendarIcon, TicketIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 const AdminDashboard = () => {
   const { theme } = useTheme();
   const { currentUser } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState({ total: 0, admins: 0, verified: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,6 +32,11 @@ const AdminDashboard = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch users');
       setUsers(data);
+      setStats({
+        total: data.length,
+        admins: data.filter(u => u.role === 'Admin' || u.role === 'superAdmin').length,
+        verified: data.filter(u => u.isVerified).length,
+      });
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -83,7 +89,25 @@ const AdminDashboard = () => {
             <UsersIcon className="h-8 w-8 text-blue-500" />
             <h2 className={`text-3xl font-bold ${theme.text}`}>User Management</h2>
           </div>
-          <span className={`text-sm ${theme.textSecondary}`}>{users.length} users</span>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg rounded-lg p-4 text-center">
+            <UsersIcon className="h-8 w-8 mx-auto text-blue-500 mb-2" />
+            <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+            <p className={`text-sm ${theme.textSecondary}`}>Total Users</p>
+          </div>
+          <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg rounded-lg p-4 text-center">
+            <CheckCircleIcon className="h-8 w-8 mx-auto text-green-500 mb-2" />
+            <p className="text-2xl font-bold text-green-600">{stats.admins}</p>
+            <p className={`text-sm ${theme.textSecondary}`}>Admins</p>
+          </div>
+          <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg rounded-lg p-4 text-center">
+            <TicketIcon className="h-8 w-8 mx-auto text-purple-500 mb-2" />
+            <p className="text-2xl font-bold text-purple-600">{stats.verified}</p>
+            <p className={`text-sm ${theme.textSecondary}`}>Verified Users</p>
+          </div>
         </div>
 
         {loading ? (

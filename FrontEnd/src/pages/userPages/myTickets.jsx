@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import useGetMyTickets from '../../hooks/userHooks/useGetMyTickets';
 import { useCancelTicket } from '../../hooks/userHooks/useCancelTicket';
 import { useTheme } from '../../contexts/ThemeContext';
 import { TicketIcon, CalendarIcon, MapPinIcon, ClockIcon, TagIcon } from '@heroicons/react/24/outline';
+import TicketReceipt from '../../components/EventComponents/TicketReceipt';
 
 const MyTickets = () => {
   const { tickets, loading, error } = useGetMyTickets();
   const { cancelTicket, loading: cancelling } = useCancelTicket();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   const handleCancel = async (ticketId) => {
     if (!window.confirm('Are you sure you want to cancel this ticket?')) return;
@@ -90,8 +92,20 @@ const MyTickets = () => {
             {/* Ticket Footer */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-2">
               <button
-                onClick={() => navigate(`/events/${ticket.eventId?._id}`)}
+                onClick={() => setSelectedTicket({
+                  ...ticket,
+                  eventTitle: ticket.eventId?.title,
+                  date: ticket.eventId?.date,
+                  time: ticket.eventId?.StartTime,
+                  location: ticket.eventId?.location,
+                })}
                 className="flex-1 bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition text-sm"
+              >
+                View Receipt
+              </button>
+              <button
+                onClick={() => navigate(`/events/${ticket.eventId?._id}`)}
+                className="flex-1 bg-gray-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-gray-600 transition text-sm"
               >
                 View Event
               </button>
@@ -108,6 +122,9 @@ const MyTickets = () => {
           </motion.div>
         ))}
       </div>
+      {selectedTicket && (
+        <TicketReceipt ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
+      )}
     </div>
   );
 };

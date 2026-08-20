@@ -459,10 +459,15 @@ export const ticketBooking = async (req, res, next) => {
       bookingCode = undefined;
     }
 
+    const { ticketType } = req.body;
+    const validTicketType = ['Regular', 'VIP'].includes(ticketType) ? ticketType : 'Regular';
+    const ticketPrices = { Regular: 0, VIP: 25 };
+
     const newTicket = new Ticket({
       eventId: event._id,
       userId,
-      ticketType: "Regular",
+      ticketType: validTicketType,
+      ticketPrice: ticketPrices[validTicketType],
       numberOfTickets: numberOfTickets || 1,
     });
 
@@ -531,7 +536,10 @@ export const getEventStats = async (req, res, next) => {
       (sum, ticket) => sum + ticket.numberOfTickets,
       0
     );
-    const totalRevenue = 0; // No ticket price field in model yet
+    const totalRevenue = tickets.reduce(
+      (sum, ticket) => sum + (ticket.ticketPrice || 0) * ticket.numberOfTickets,
+      0
+    );
 
     // Calculate the number of tickets sold per ticket type (e.g., Regular, VIP)
     const ticketTypes = {

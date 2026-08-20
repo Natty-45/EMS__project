@@ -13,8 +13,12 @@ const ticketSchema = new mongoose.Schema({
     },
     ticketType: {
         type: String,
-        enum: ['Regular', 'VIP'],  // You can expand the types as needed
+        enum: ['Regular', 'VIP'],
         default: 'Regular',
+    },
+    ticketPrice: {
+        type: Number,
+        default: 0,
     },
     status: {
         type: String,

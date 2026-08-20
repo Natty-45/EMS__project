@@ -51,6 +51,9 @@ const ProfileMenu = () => {
               <Link to="/my-events" className={`block px-4 py-2 ${isLightMode ? theme.text : 'text-black'} hover:bg-gray-100`}>
                 My Events
               </Link>
+              <Link to="/my-tickets" className={`block px-4 py-2 ${isLightMode ? theme.text : 'text-black'} hover:bg-gray-100`}>
+                My Tickets
+              </Link>
 
               {/* Reports Group */}
               <div className="px-4 py-2 font-medium text-sm text-gray-500">Reports</div>

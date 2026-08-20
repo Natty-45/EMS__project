@@ -5,7 +5,7 @@ const useBookTicket = (eventId) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const bookTicket = async ({ bookingCode, numberOfTickets }) => {
+  const bookTicket = async ({ bookingCode, numberOfTickets, ticketType }) => {
     setLoading(true);
     setError(null);
 
@@ -18,7 +18,7 @@ const useBookTicket = (eventId) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ bookingCode, numberOfTickets }),
+        body: JSON.stringify({ bookingCode, numberOfTickets, ticketType }),
       });
 
       const data = await res.json();
