@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
 import ProfileMenu from './ProfileMenu';
+import NotificationBell from './NotificationBell';
 
 export default function Header() {
   const { theme } = useTheme();
@@ -58,7 +59,10 @@ export default function Header() {
             <NavLink to="/calendar" label="Calendar" />
             <ThemeToggle />
             {currentUser ? (
-              <ProfileMenu />
+              <>
+                <NotificationBell />
+                <ProfileMenu />
+              </>
             ) : (
               <Link
                 to="/signup"

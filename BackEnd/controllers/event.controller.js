@@ -6,6 +6,7 @@ import Event from "../models/event.model.js";
 import User from "../models/user.model.js";
 import RequestedEvent from "../models/requestedEvent.model.js";
 import transporter from "../nodeMailer/nodeMailer.config.js";
+import { emitToAll, emitToUser, emitToRole } from "../utils/socket.js";
 
 // Auto-end past events (runs every hour)
 cron.schedule('0 * * * *', async () => {
@@ -78,6 +79,14 @@ export const createEvent = async (req, res, next) => {
     }
 
     await eventDoc.save();
+
+    // Emit real-time notification
+    if (userRole === 'Admin') {
+      emitToAll('event:created', { event: eventDoc, message: `New event: ${eventDoc.title}` });
+    } else {
+      emitToRole('Admin', 'event:requested', { event: eventDoc, message: `New event request: ${eventDoc.title}` });
+    }
+
     res.status(201).json(eventDoc);
   } catch (error) {
     next(error);
@@ -180,6 +189,12 @@ export const approveRequestedEvent = async (req, res, next) => {
           console.error('Error sending approval email:', emailError.message);
         }
       }
+      // Emit real-time notification to the requester
+      emitToUser(requestedEvent.requester.toString(), 'event:approved', {
+        event,
+        message: `Your event "${event.title}" has been approved!`,
+      });
+
       res
         .status(200)
         .json({ message: "Event approved and created successfully.", event });
@@ -210,6 +225,12 @@ export const approveRequestedEvent = async (req, res, next) => {
           console.error('Error deleting rejected event:', err.message);
         }
       }, 3 * 60 * 1000);
+
+      // Emit real-time notification to the requester
+      emitToUser(requestedEvent.requester.toString(), 'event:rejected', {
+        event: requestedEvent,
+        message: `Your event "${requestedEvent.title}" was not approved.`,
+      });
 
       res
         .status(200)
@@ -472,6 +493,15 @@ export const ticketBooking = async (req, res, next) => {
     });
 
     await newTicket.save();
+
+    // Emit real-time notification to event creator
+    if (event.createdBy) {
+      emitToUser(event.createdBy.toString(), 'ticket:booked', {
+        ticket: newTicket,
+        event,
+        message: `A ticket was booked for "${event.title}"`,
+      });
+    }
 
     res.status(200).json({ message: "Ticket booked successfully", ticket: newTicket });
   } catch (error) {
