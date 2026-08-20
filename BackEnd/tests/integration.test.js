@@ -96,8 +96,8 @@ function ticketBookingLogic({ userRole, userId, eventId, body }) {
   return { status: 200, data: ticket };
 }
 
-function approveEventLogic({ userRole, eventId, action, requestedEvent }) {
-  if (userRole !== 'Admin') {
+function approveEventLogic({ userRole, eventId, action, requestedEvent, reason }) {
+  if (userRole !== 'Admin' && userRole !== 'superAdmin') {
     return { status: 403, error: 'Access Denied. Only Admins can approve requested events!' };
   }
   if (!requestedEvent) {
@@ -119,10 +119,23 @@ function approveEventLogic({ userRole, eventId, action, requestedEvent }) {
       createdBy: requestedEvent.requester,
       bookingCode: requestedEvent.bookingCode,
     };
-    return { status: 200, data: event, message: 'Event approved and created successfully.' };
+    // Approved event moves to the Events collection and leaves requested events
+    return {
+      status: 200,
+      data: event,
+      message: 'Event approved and created successfully.',
+      requestedRemoved: true,
+    };
   } else if (action === 'reject') {
+    const rejectionReason = (reason || 'It does not meet the hosting criteria at this time.').toString().trim();
     requestedEvent.requestEventStatus = 'Rejected';
-    return { status: 200, data: requestedEvent, message: 'Event request declined.' };
+    requestedEvent.rejectionReason = rejectionReason;
+    return {
+      status: 200,
+      data: requestedEvent,
+      message: 'Event request declined.',
+      deleteAfterMs: 5 * 60 * 1000,
+    };
   }
 
   return { status: 400, error: 'Invalid action!' };
@@ -382,6 +395,61 @@ describe('Event Approval Workflow Integration', () => {
 
     assert.equal(result.status, 200);
     assert.equal(result.data.requestEventStatus, 'Rejected');
+  });
+
+  it('should persist the rejection reason provided by the admin', () => {
+    const event = { ...mockRequestedEvent, requestEventStatus: 'Pending' };
+    const result = approveEventLogic({
+      userRole: 'Admin',
+      eventId: 'req123',
+      action: 'reject',
+      requestedEvent: event,
+      reason: 'Venue already booked for that date',
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(result.data.requestEventStatus, 'Rejected');
+    assert.equal(result.data.rejectionReason, 'Venue already booked for that date');
+  });
+
+  it('should use a default reason when none is provided', () => {
+    const event = { ...mockRequestedEvent, requestEventStatus: 'Pending' };
+    const result = approveEventLogic({
+      userRole: 'superAdmin',
+      eventId: 'req123',
+      action: 'reject',
+      requestedEvent: event,
+    });
+
+    assert.equal(result.status, 200);
+    assert.ok(result.data.rejectionReason.length > 0);
+    assert.equal(result.data.rejectionReason, 'It does not meet the hosting criteria at this time.');
+  });
+
+  it('should schedule the rejected event for deletion after 5 minutes', () => {
+    const event = { ...mockRequestedEvent, requestEventStatus: 'Pending' };
+    const result = approveEventLogic({
+      userRole: 'Admin',
+      eventId: 'req123',
+      action: 'reject',
+      requestedEvent: event,
+      reason: 'Duplicate event',
+    });
+
+    assert.equal(result.deleteAfterMs, 300000);
+  });
+
+  it('should move the approved event to events and remove it from requested events', () => {
+    const result = approveEventLogic({
+      userRole: 'Admin',
+      eventId: 'req123',
+      action: 'approve',
+      requestedEvent: { ...mockRequestedEvent },
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(result.data.createdBy, 'user789');
+    assert.equal(result.requestedRemoved, true);
   });
 
   it('should reject non-admin from approving events', () => {

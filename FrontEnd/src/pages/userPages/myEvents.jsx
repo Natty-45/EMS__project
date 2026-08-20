@@ -12,7 +12,7 @@ const MyEvents = () => {
   const navigate = useNavigate();
 
   return (
-    <div className={`min-h-screen p-6 ${theme.background}`}>
+    <div className={`min-h-screen p-6 pt-28 ${theme.background}`}>
       <h1 className={`text-3xl font-bold mb-6 text-center ${theme.text}`}>
         My Events
       </h1>
@@ -79,16 +79,28 @@ const MyEvents = () => {
 
               {/* Show request status only if this is a requested event */}
               {event.source === 'requested' && (
-                <div className="mt-2">
+                <div className="mt-2 space-y-2">
                   {event.requestEventStatus === 'Pending' && (
                     <span className="inline-flex items-center text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300 px-2 py-1 rounded-full text-xs font-medium">
                       <FaHourglassHalf className="mr-1" /> Pending Approval
                     </span>
                   )}
-                  {event.requestEventStatus === 'Rejected' && (
-                    <span className="inline-flex items-center text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
-                      <FaTimesCircle className="mr-1" /> Rejected
+                  {event.requestEventStatus === 'Approved' && (
+                    <span className="inline-flex items-center text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300 px-2 py-1 rounded-full text-xs font-medium">
+                      Approved — now live on Events
                     </span>
+                  )}
+                  {event.requestEventStatus === 'Rejected' && (
+                    <>
+                      <span className="inline-flex items-center text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
+                        <FaTimesCircle className="mr-1" /> Rejected
+                      </span>
+                      {event.rejectionReason && (
+                        <p className="text-xs text-red-500 dark:text-red-400 bg-red-500/5 border border-red-500/20 rounded-lg p-2">
+                          <strong>Reason:</strong> {event.rejectionReason}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               )}

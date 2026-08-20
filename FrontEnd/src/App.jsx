@@ -1,5 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react';
 
 import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/DashBoardComponents/Header';
@@ -23,6 +24,7 @@ import RequestedEvent from './pages/eventAdmin Page/requestedEvent';
 import MyEvents from './pages/userPages/myEvents';
 import MyTickets from './pages/userPages/myTickets';
 import PrivateRoute from './components/privateRoute/privateRoute';
+import { AdminRoute, SuperAdminRoute, MemberRoute } from './components/privateRoute/roleRoute';
 import BookingPage from './pages/EventPages/bookingPage';
 import ApproveEvent from './pages/eventAdmin Page/approveEvent';
 import UpdateEvent from './pages/userPages/updateEvents';
@@ -41,11 +43,20 @@ function Layout({ children }) {
   );
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   return (
     <ThemeProvider>
       <Toaster />
       <Router>
+        <ScrollToTop />
         <Layout>
           <Routes>
             <Route path="/" element={<Landing />} />
@@ -64,15 +75,21 @@ function App() {
             <Route element={<PrivateRoute />} >
             <Route path="/updateProfile" element={<UpdateProfile />} />
             <Route path='/createEvent' element={<CreateEvent />} />
-            <Route path="/requested_events" element={<RequestedEvent />} />
             <Route path='/my-events' element={<MyEvents />} />
             <Route path='/my-tickets' element={<MyTickets />} />
-            <Route path="/booking/:eventId" element={<BookingPage />} />
-            <Route path="/requested-event/approve/:eventId" element={<ApproveEvent />} />
             <Route path="/my-events/update/:id" element={<UpdateEvent />} />
+            </Route>
+            <Route element={<MemberRoute />} >
+              <Route path="/booking/:eventId" element={<BookingPage />} />
+            </Route>
+            <Route element={<AdminRoute />} >
+            <Route path="/requested_events" element={<RequestedEvent />} />
+            <Route path="/requested-event/approve/:eventId" element={<ApproveEvent />} />
             <Route path="/admin/export" element={<AdminExport />} />
             <Route path="/admin/stats" element={<AdminStats />} />
             <Route path="/admin/tickets" element={<AdminTickets />} />
+            </Route>
+            <Route element={<SuperAdminRoute />} >
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             </Route>
             <Route path="*" element={<NotFound />} />

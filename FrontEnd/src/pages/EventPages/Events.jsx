@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../contexts/ThemeContext';
 import { CalendarIcon, ClockIcon, MapPinIcon, MagnifyingGlassIcon, TicketIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import useGetAllEvents from '../../hooks/eventHooks/useGetAllEvents';
@@ -20,6 +21,8 @@ const statusStyles = {
 
 const Events = () => {
   const { theme } = useTheme();
+  const { currentUser } = useSelector((state) => state.user);
+  const isStaff = currentUser && (currentUser.role === 'Admin' || currentUser.role === 'superAdmin');
   const { events, loading, error } = useGetAllEvents();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -168,11 +171,12 @@ const Events = () => {
                     <div className="mt-5 flex gap-3 border-t pt-5 dark:border-white/5">
                       <Link
                         to={`/events/${event._id}`}
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-brand-500/40 py-2.5 text-sm font-semibold text-brand-600 transition-all duration-300 hover:bg-brand-500/10 dark:text-brand-400"
+                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-brand-500/40 py-2.5 text-sm font-semibold text-brand-600 transition-all duration-300 hover:bg-brand-500/10 dark:text-brand-400`}
                       >
                         Details
                         <ArrowRightIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                       </Link>
+                      {!isStaff && (
                       <Link
                         to={`/booking/${event._id}`}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-brand-500/40 hover:scale-[1.03] active:scale-95"
@@ -180,6 +184,7 @@ const Events = () => {
                         <TicketIcon className="h-4 w-4" />
                         Book Now
                       </Link>
+                      )}
                     </div>
                   </div>
                 </div>

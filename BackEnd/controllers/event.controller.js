@@ -72,7 +72,7 @@ export const createEvent = async (req, res, next) => {
     };
 
     let eventDoc;
-    if (userRole === "Admin") {
+    if (userRole === "Admin" || userRole === "superAdmin") {
       eventDoc = new Event({ ...commonData, createdBy: userId });
     } else {
       eventDoc = new RequestedEvent({ ...commonData, requester: userId });
@@ -81,7 +81,7 @@ export const createEvent = async (req, res, next) => {
     await eventDoc.save();
 
     // Emit real-time notification
-    if (userRole === 'Admin') {
+    if (userRole === 'Admin' || userRole === 'superAdmin') {
       emitToAll('event:created', { event: eventDoc, message: `New event: ${eventDoc.title}` });
     } else {
       emitToRole('Admin', 'event:requested', { event: eventDoc, message: `New event request: ${eventDoc.title}` });
@@ -110,7 +110,7 @@ export const getAllEvents = async (req, res, next) => {
 export const getAllRequestedEvents = async (req, res, next) => {
   const userRole = req.userRole;
 
-  if (userRole !== "Admin") {
+  if (userRole !== "Admin" && userRole !== "superAdmin") {
     return res.status(403).json({
       error: "Access Denied. Only Admins can view all requested events!",
     });
@@ -145,13 +145,13 @@ export const getEventsByCategory = async (req, res, next) => {
 
 export const approveRequestedEvent = async (req, res, next) => {
   const userRole = req.userRole;
-  if (userRole !== "Admin") {
+  if (userRole !== "Admin" && userRole !== "superAdmin") {
     return res.status(403).json({
       error: "Access Denied. Only Admins can approve requested events!",
     });
   }
   const eventId = req.params.id;
-  const { action } = req.body;
+  const { action, reason } = req.body;
   try {
     const requestedEvent = await RequestedEvent.findById(eventId);
     if (!requestedEvent) {
@@ -199,7 +199,9 @@ export const approveRequestedEvent = async (req, res, next) => {
         .status(200)
         .json({ message: "Event approved and created successfully.", event });
     } else if (action === "reject") {
+      const rejectionReason = (reason || "It does not meet the hosting criteria at this time.").toString().trim();
       requestedEvent.requestEventStatus = "Rejected";
+      requestedEvent.rejectionReason = rejectionReason;
       await requestedEvent.save();
 
       // Send rejection email to the requester
@@ -210,26 +212,27 @@ export const approveRequestedEvent = async (req, res, next) => {
             from: process.env.EMAIL,
             to: user.email,
             subject: `Event Rejected: ${requestedEvent.title}`,
-            html: `<h2>Your event request was not approved</h2><p>Your event <strong>${requestedEvent.title}</strong> was not approved at this time.</p><p>You can create a new event request with modifications.</p><p>Best regards,<br>EMS Team</p>`,
+            html: `<h2>Your event request was not approved</h2><p>Your event <strong>${requestedEvent.title}</strong> was not approved at this time.</p><p><strong>Reason:</strong> ${rejectionReason}</p><p>You can create a new event request with modifications.</p><p>Best regards,<br>EMS Team</p>`,
           });
         } catch (emailError) {
           console.error('Error sending rejection email:', emailError.message);
         }
       }
-      // Delete after 3 minutes using setTimeout instead of cron
+      // Delete after 5 minutes
       setTimeout(async () => {
         try {
           await RequestedEvent.findByIdAndDelete(eventId);
-          console.log(`Rejected event ${eventId} deleted after 3 minutes.`);
+          console.log(`Rejected event ${eventId} deleted after 5 minutes.`);
         } catch (err) {
           console.error('Error deleting rejected event:', err.message);
         }
-      }, 3 * 60 * 1000);
+      }, 5 * 60 * 1000);
 
       // Emit real-time notification to the requester
       emitToUser(requestedEvent.requester.toString(), 'event:rejected', {
         event: requestedEvent,
         message: `Your event "${requestedEvent.title}" was not approved.`,
+        reason: rejectionReason,
       });
 
       res
@@ -275,7 +278,7 @@ export const getMyEventDetails = async (req, res, next) => {
   try {
     let event = null;
 
-    if (userRole === "Admin") {
+    if (userRole === "Admin" || userRole === "superAdmin") {
       // Admin can get any event by ID from either collection
       event = await Event.findById(eventId) || await RequestedEvent.findById(eventId);
     } else {
@@ -349,23 +352,21 @@ const allImages = [...existingImages, ...imageFilenames];
   try {
     let event;
 
-    // Admin can only update events from the Event schema
-    if (userRole === "Admin") {
-      // Admin can only update events from the Event schema (approved)
-      event = await Event.findById(eventId);
+    // Admins manage the platform: they can update any approved event
+    // and their own pending requested events
+    if (userRole === "Admin" || userRole === "superAdmin") {
+      event = (await Event.findById(eventId)) || (await RequestedEvent.findById(eventId));
 
-      // If not found in Event schema, return 404
       if (!event) {
         return res
           .status(404)
           .json({ error: "Event not found or access denied" });
       }
 
-      // Admin can only update their own event, not others'
-      if (event.createdBy?.toString() !== userId?.toString() && 
-          event.requester?.toString() !== userId?.toString()) {
+      // Admins cannot edit requested events raised by other users
+      if (event.requester && event.requester.toString() !== userId.toString()) {
         return res.status(403).json({
-          error: "Access Denied. You can only update your own event!",
+          error: "Access Denied. You can only update your own requested event!",
         });
       }
     } else {
@@ -419,8 +420,8 @@ export const deleteEvent = async (req, res, next) => {
     let event;
 
     // both admin and user can delete events
-    if (userRole === "Admin") {
-      event = await Event.findById(eventId);
+    if (userRole === "Admin" || userRole === "superAdmin") {
+      event = (await Event.findById(eventId)) || (await RequestedEvent.findById(eventId));
     } else {
       event =
         (await Event.findById(eventId)) ||
@@ -458,7 +459,7 @@ export const ticketBooking = async (req, res, next) => {
   let { bookingCode, numberOfTickets } = req.body;
 
   try {
-    if (userRole === "Admin") {
+    if (userRole === "Admin" || userRole === "superAdmin") {
       return res.status(403).json({ error: "Admins cannot book tickets." });
     }
 
@@ -606,7 +607,18 @@ export const exportEventData = async (req, res, next) => {
       .json({ error: "Access Denied. Only Admins can export event data!" });
   }
   try {
-    const events = await Event.find(); // Fetch all events
+    const eventId = req.params.id;
+    let events;
+
+    if (eventId && eventId !== "all") {
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found!" });
+      }
+      events = [event];
+    } else {
+      events = await Event.find(); // Fetch all events
+    }
 
     // Create CSV data
     const csvData = events.map((event) => ({
@@ -630,8 +642,11 @@ export const exportEventData = async (req, res, next) => {
     const csv = parser.parse(csvData);
 
     // Set headers and send the CSV as a response
+    const filename = eventId && eventId !== "all"
+      ? `event-${eventId}.csv`
+      : "events.csv";
     res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", 'attachment; filename="events.csv"');
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.send(csv);
   } catch (error) {
     console.error(error); // Log the error for debugging purposes

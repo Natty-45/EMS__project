@@ -4,7 +4,7 @@ import { useState } from "react";
 export const useApproveEvent = () => {
   const [loading, setLoading] = useState(false);
 
-  const approveEvent = async (eventId, action) => {
+  const approveEvent = async (eventId, action, reason = "") => {
     setLoading(true);
     try {
       const res = await fetch(`/api/event/approve-event/${eventId}`, {
@@ -12,7 +12,7 @@ export const useApproveEvent = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, reason }),
         credentials: 'include',
       });
 

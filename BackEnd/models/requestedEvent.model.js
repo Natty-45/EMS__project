@@ -30,6 +30,11 @@ const requestedEventSchema = new mongoose.Schema({
         required: true,
         enum: ["Private", "Public"],
     },
+    eventCategory: {
+        type: String,
+        required: true,
+        enum: ["Concert", "Wedding", "Party", "Conference", "Others"],
+    },
     eventStatus: {
         type: String,
         required: true,
@@ -40,6 +45,10 @@ const requestedEventSchema = new mongoose.Schema({
         type: String,
         enum: ["Pending", "Approved", "Rejected"],
         default: "Pending",
+    },
+    rejectionReason: {
+        type: String,
+        default: "",
     },
     host:{
         type: String,

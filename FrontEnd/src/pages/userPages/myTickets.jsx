@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import useGetMyTickets from '../../hooks/userHooks/useGetMyTickets';
 import { useCancelTicket } from '../../hooks/userHooks/useCancelTicket';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -13,6 +14,8 @@ const MyTickets = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const { currentUser } = useSelector((state) => state.user);
+  const isStaff = currentUser && (currentUser.role === 'Admin' || currentUser.role === 'superAdmin');
 
   const handleCancel = async (ticketId) => {
     if (!window.confirm('Are you sure you want to cancel this ticket?')) return;
@@ -23,7 +26,7 @@ const MyTickets = () => {
   };
 
   return (
-    <div className={`min-h-screen p-6 ${theme.background}`}>
+    <div className={`min-h-screen p-6 pt-28 ${theme.background}`}>
       <h1 className={`text-3xl font-bold mb-6 text-center ${theme.text}`}>
         My Tickets
       </h1>
@@ -34,13 +37,22 @@ const MyTickets = () => {
       {!loading && tickets.length === 0 && (
         <div className="text-center mt-12">
           <TicketIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <p className={`text-xl ${theme.text}`}>No tickets booked yet</p>
-          <button
-            onClick={() => navigate('/events')}
-            className="mt-4 bg-blue-500 text-white font-semibold py-2 px-6 rounded-md hover:bg-blue-600 transition"
-          >
-            Browse Events
-          </button>
+          <p className={`text-xl ${theme.text}`}>{isStaff ? 'No bookings — you manage events instead' : 'No tickets booked yet'}</p>
+          {isStaff ? (
+            <button
+              onClick={() => navigate('/admin/tickets')}
+              className="mt-4 bg-blue-500 text-white font-semibold py-2 px-6 rounded-md hover:bg-blue-600 transition"
+            >
+              View Member Bookings
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/events')}
+              className="mt-4 bg-blue-500 text-white font-semibold py-2 px-6 rounded-md hover:bg-blue-600 transition"
+            >
+              Browse Events
+            </button>
+          )}
         </div>
       )}
 

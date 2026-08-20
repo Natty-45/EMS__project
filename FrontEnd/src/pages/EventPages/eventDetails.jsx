@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
   CalendarIcon,
@@ -19,6 +20,8 @@ const EventDetails = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = React.useState(0);
+  const { currentUser } = useSelector((state) => state.user);
+  const isStaff = currentUser && (currentUser.role === 'Admin' || currentUser.role === 'superAdmin');
 
   const { event, loading, error } = useEventDetails(eventId);
 
@@ -197,7 +200,7 @@ const EventDetails = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
             >
-              {canBook ? (
+              {canBook && !isStaff ? (
                 <motion.button
                   onClick={handleNavigateToBooking}
                   className="btn-primary group flex-1"
@@ -211,9 +214,9 @@ const EventDetails = () => {
                 <button
                   disabled
                   className="flex-1 cursor-not-allowed rounded-xl bg-slate-400/60 px-6 py-3.5 font-semibold text-white"
-                  title="Booking unavailable for requested or inactive events"
+                  title={isStaff ? "Admins manage events and cannot book tickets" : "Booking unavailable for requested or inactive events"}
                 >
-                  Booking Unavailable
+                  {isStaff ? 'Admins Cannot Book' : 'Booking Unavailable'}
                 </button>
               )}
               <div className="rounded-2xl border border-dashed border-brand-500/40 px-6 py-3 text-center">

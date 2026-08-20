@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useSelector } from 'react-redux';
 import EventCard from '../../components/EventComponents/EventCard';
 import { motion } from 'framer-motion';
 import useGetAllEvents from '../../hooks/eventHooks/useGetAllEvents';
@@ -8,6 +9,7 @@ import SectionHeading from '../../components/ui/SectionHeading';
 import Marquee from '../../components/ui/Marquee';
 import AnimatedCounter from '../../components/ui/AnimatedCounter';
 import GradientText from '../../components/ui/GradientText';
+import RoleDashboard from './RoleDashboard';
 import {
   SparklesIcon,
   ArrowRightIcon,
@@ -21,8 +23,13 @@ import {
 
 export default function Landing() {
   const { theme, isLightMode } = useTheme();
+  const { currentUser } = useSelector((state) => state.user);
   const { events, loading } = useGetAllEvents();
   const upcomingEvents = events.slice(0, 3);
+
+  if (currentUser) {
+    return <RoleDashboard />;
+  }
 
   return (
     <div className={`${theme.background} overflow-hidden`}>

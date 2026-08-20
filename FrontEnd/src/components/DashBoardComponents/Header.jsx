@@ -26,13 +26,18 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
-    { to: '/events', label: 'Events' },
-    { to: '/services', label: 'Services' },
-    { to: '/about', label: 'About Us' },
-    { to: '/contact', label: 'Contact' },
-    { to: '/calendar', label: 'Calendar' },
-  ];
+  const navItems = currentUser
+    ? [
+        { to: '/events', label: 'Events' },
+        { to: '/calendar', label: 'Calendar' },
+      ]
+    : [
+        { to: '/events', label: 'Events' },
+        { to: '/services', label: 'Services' },
+        { to: '/about', label: 'About Us' },
+        { to: '/contact', label: 'Contact' },
+        { to: '/calendar', label: 'Calendar' },
+      ];
 
   return (
     <header

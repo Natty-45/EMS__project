@@ -14,7 +14,7 @@ const RequestedEvents = () => {
   };
 
   return (
-    <div className={`min-h-screen p-14 py-10 px-6 md:px-10 transition-colors duration-300 ${theme.background}`}>
+    <div className={`min-h-screen p-14 pt-28 pb-10 px-6 md:px-10 transition-colors duration-300 ${theme.background}`}>
       <h1 className={`text-4xl font-extrabold my-8 text-center ${theme.text}`}>Requested Events</h1>
 
       {loading && <p className={`text-center text-lg ${theme.textSecondary}`}>Loading...</p>}

@@ -2,23 +2,19 @@ import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ChartBarIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import EventSelector from '../../components/ui/EventSelector';
 
 const AdminStats = () => {
   const { theme } = useTheme();
-  const [eventId, setEventId] = useState('');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchStats = async () => {
-    if (!eventId.trim()) {
-      toast.error('Please enter an event ID');
-      return;
-    }
+  const fetchStats = async (event) => {
     setLoading(true);
     setStats(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/event/${eventId}/stats`, {
+      const res = await fetch(`/api/event/${event._id}/stats`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -39,25 +35,16 @@ const AdminStats = () => {
         <ChartBarIcon className="h-12 w-12 mx-auto text-blue-500 mb-4" />
         <h2 className={`text-3xl font-bold text-center mb-6 ${theme.text}`}>Event Statistics</h2>
 
-        <div className="flex gap-4 mb-6">
-          <input
-            type="text"
-            value={eventId}
-            onChange={(e) => setEventId(e.target.value)}
-            placeholder="Enter Event ID"
-            className="flex-1 p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={fetchStats}
-            disabled={loading}
-            className="bg-blue-500 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : 'Get Stats'}
-          </button>
-        </div>
+        <EventSelector
+          onSelect={fetchStats}
+          allowAll={false}
+          label="Which event would you like to see statistics for?"
+        />
+
+        {loading && <p className={`text-center mt-6 ${theme.textSecondary}`}>Loading statistics...</p>}
 
         {stats && (
-          <div className="bg-white bg-opacity-50 p-6 rounded-lg">
+          <div className="bg-white bg-opacity-50 p-6 rounded-lg mt-6">
             <h3 className={`text-xl font-bold mb-4 ${theme.text}`}>{stats.event.title}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">

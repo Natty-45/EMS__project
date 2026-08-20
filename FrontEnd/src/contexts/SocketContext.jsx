@@ -45,7 +45,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on('event:rejected', (data) => {
-      toast.error(data.message);
+      toast.error(data.reason ? `${data.message} Reason: ${data.reason}` : data.message);
       addNotification(data);
     });
 

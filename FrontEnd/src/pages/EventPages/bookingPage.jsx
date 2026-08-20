@@ -44,7 +44,7 @@ const BookingPage = () => {
   };
 
   return (
-    <div className={`min-h-screen p-6 flex justify-center items-center ${theme.background}`}>
+    <div className={`min-h-screen p-6 pt-28 flex justify-center items-center ${theme.background}`}>
       <form
         onSubmit={handleSubmit}
         className={`w-full max-w-md p-8 rounded-xl shadow-2xl transition-all duration-300 ${formBg}`}

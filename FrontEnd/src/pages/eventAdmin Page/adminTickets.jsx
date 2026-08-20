@@ -2,23 +2,21 @@ import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { TicketIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import EventSelector from '../../components/ui/EventSelector';
 
 const AdminTickets = () => {
   const { theme } = useTheme();
-  const [eventId, setEventId] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchTickets = async () => {
-    if (!eventId.trim()) {
-      toast.error('Please enter an event ID');
-      return;
-    }
+  const fetchTickets = async (event) => {
+    setSelectedEvent(event);
     setLoading(true);
     setTickets([]);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/event/${eventId}/tickets`, {
+      const res = await fetch(`/api/event/${event._id}/tickets`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -39,25 +37,16 @@ const AdminTickets = () => {
         <TicketIcon className="h-12 w-12 mx-auto text-blue-500 mb-4" />
         <h2 className={`text-3xl font-bold text-center mb-6 ${theme.text}`}>Event Tickets</h2>
 
-        <div className="flex gap-4 mb-6">
-          <input
-            type="text"
-            value={eventId}
-            onChange={(e) => setEventId(e.target.value)}
-            placeholder="Enter Event ID"
-            className="flex-1 p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={fetchTickets}
-            disabled={loading}
-            className="bg-blue-500 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : 'Get Tickets'}
-          </button>
-        </div>
+        <EventSelector
+          onSelect={fetchTickets}
+          allowAll={false}
+          label="Which event would you like to see tickets for?"
+        />
 
-        {tickets.length > 0 && (
-          <div className="overflow-x-auto">
+        {loading && <p className={`text-center mt-6 ${theme.textSecondary}`}>Loading tickets...</p>}
+
+        {!loading && tickets.length > 0 && (
+          <div className="overflow-x-auto mt-6">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-200 dark:bg-gray-700">
@@ -91,7 +80,7 @@ const AdminTickets = () => {
           </div>
         )}
 
-        {!loading && tickets.length === 0 && eventId && (
+        {!loading && tickets.length === 0 && selectedEvent && (
           <p className="text-center text-gray-500 mt-4">No tickets found for this event.</p>
         )}
       </div>

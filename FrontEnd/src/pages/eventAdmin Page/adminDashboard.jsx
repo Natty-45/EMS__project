@@ -3,7 +3,15 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import { UsersIcon, TrashIcon, CalendarIcon, TicketIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import Reveal from '../../components/ui/Reveal';
+import GradientText from '../../components/ui/GradientText';
+import { UsersIcon, TrashIcon, CheckCircleIcon, ShieldCheckIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+
+const ROLE_BADGE = {
+  user: 'bg-brand-500/10 text-brand-600 dark:text-brand-400',
+  Admin: 'bg-green-500/10 text-green-600 dark:text-green-400',
+  superAdmin: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+};
 
 const AdminDashboard = () => {
   const { theme } = useTheme();
@@ -14,8 +22,8 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentUser || (currentUser.role !== 'superAdmin' && currentUser.role !== 'Admin')) {
-      toast.error('Access denied');
+    if (!currentUser || currentUser.role !== 'superAdmin') {
+      toast.error('Access denied. Super Admin only.');
       navigate('/');
       return;
     }
@@ -81,101 +89,123 @@ const AdminDashboard = () => {
     }
   };
 
+  const statCards = [
+    { label: 'Total Users', value: stats.total, icon: <UserGroupIcon className="h-6 w-6 text-brand-500" /> },
+    { label: 'Admins', value: stats.admins, icon: <ShieldCheckIcon className="h-6 w-6 text-green-500" /> },
+    { label: 'Verified Users', value: stats.verified, icon: <CheckCircleIcon className="h-6 w-6 text-emerald-500" /> },
+  ];
+
   return (
-    <div className={`min-h-screen ${theme.background} pt-20 px-4`}>
-      <div className="max-w-6xl mx-auto mt-10 mb-10">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <UsersIcon className="h-8 w-8 text-blue-500" />
-            <h2 className={`text-3xl font-bold ${theme.text}`}>User Management</h2>
+    <div className={`min-h-screen ${theme.background} pt-28`}>
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center overflow-hidden">
+        <div className="h-72 w-72 rounded-full bg-purple-500/15 blur-[120px] animate-pulse-glow" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
+        <Reveal>
+          <div className="mb-8">
+            <span className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-sm font-semibold text-purple-600 dark:text-purple-400">
+              <ShieldCheckIcon className="h-4 w-4" />
+              Super Admin
+            </span>
+            <h1 className={`mt-4 font-display text-3xl font-bold sm:text-4xl ${theme.text}`}>
+              User <GradientText>Management</GradientText>
+            </h1>
+            <p className={`mt-2 ${theme.textSecondary}`}>
+              Manage all users, assign roles and keep the platform healthy.
+            </p>
           </div>
+        </Reveal>
+
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {statCards.map((stat, index) => (
+            <Reveal key={stat.label} delay={index * 0.08}>
+              <div className={`group relative overflow-hidden rounded-3xl ${theme.card} border ${theme.border} p-6 card-hover`}>
+                <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br from-purple-500 to-brand-500 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-20" />
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/10 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6">
+                  {stat.icon}
+                </span>
+                <div className={`mt-4 font-display text-3xl font-bold ${theme.text}`}>{stat.value}</div>
+                <p className={`mt-1 text-sm ${theme.textSecondary}`}>{stat.label}</p>
+              </div>
+            </Reveal>
+          ))}
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg rounded-lg p-4 text-center">
-            <UsersIcon className="h-8 w-8 mx-auto text-blue-500 mb-2" />
-            <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
-            <p className={`text-sm ${theme.textSecondary}`}>Total Users</p>
+        <Reveal delay={0.1}>
+          <div className={`overflow-hidden rounded-3xl ${theme.card} border ${theme.border} shadow-lg shadow-black/5`}>
+            {loading ? (
+              <div className="flex justify-center p-12">
+                <div className="flex items-center gap-3 rounded-full bg-brand-500/10 px-6 py-3 text-brand-600 dark:text-brand-400">
+                  <span className="h-2 w-2 animate-ping rounded-full bg-brand-500" />
+                  Loading users...
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200/60 bg-slate-50/60 dark:border-white/10 dark:bg-white/5">
+                      {['User', 'Email', 'Role', 'Verified', 'Joined', 'Actions'].map(h => (
+                        <th key={h} className="p-4 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user._id} className="border-b border-slate-100 transition-colors last:border-0 hover:bg-brand-500/5 dark:border-white/5">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={user.profilepic || 'https://cdn.vectorstock.com/i/1000v/23/81/default-avatar-profile-icon-vector-18942381.avif'}
+                              alt=""
+                              className="h-9 w-9 rounded-full object-cover ring-2 ring-brand-500/20"
+                            />
+                            <span className={`text-sm font-semibold ${theme.text}`}>{user.fullName}</span>
+                          </div>
+                        </td>
+                        <td className={`p-4 text-sm ${theme.textSecondary}`}>{user.email}</td>
+                        <td className="p-4">
+                          <select
+                            value={user.role}
+                            onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                            className={`cursor-pointer rounded-lg border border-slate-200 px-2 py-1.5 text-sm font-semibold outline-none transition-colors focus:border-brand-500 dark:border-white/10 ${theme.card} ${theme.text}`}
+                            disabled={user._id === currentUser?._id}
+                          >
+                            <option value="user">user</option>
+                            <option value="Admin">Admin</option>
+                            <option value="superAdmin">superAdmin</option>
+                          </select>
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${user.isVerified ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
+                            {user.isVerified ? 'Yes' : 'No'}
+                          </span>
+                        </td>
+                        <td className={`p-4 text-sm ${theme.textSecondary}`}>
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="p-4">
+                          {user._id !== currentUser?._id && (
+                            <button
+                              onClick={() => handleDeleteUser(user._id)}
+                              className="rounded-xl p-2 text-red-500 transition-all duration-200 hover:scale-110 hover:bg-red-500/10"
+                              title="Delete user"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-          <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg rounded-lg p-4 text-center">
-            <CheckCircleIcon className="h-8 w-8 mx-auto text-green-500 mb-2" />
-            <p className="text-2xl font-bold text-green-600">{stats.admins}</p>
-            <p className={`text-sm ${theme.textSecondary}`}>Admins</p>
-          </div>
-          <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg rounded-lg p-4 text-center">
-            <TicketIcon className="h-8 w-8 mx-auto text-brand-500 mb-2" />
-            <p className="text-2xl font-bold text-brand-600">{stats.verified}</p>
-            <p className={`text-sm ${theme.textSecondary}`}>Verified Users</p>
-          </div>
-        </div>
-
-        {loading ? (
-          <p className="text-center text-lg">Loading users...</p>
-        ) : (
-          <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg rounded-lg shadow-lg overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-200 dark:bg-gray-700">
-                  <th className="p-4 text-left text-sm font-semibold">User</th>
-                  <th className="p-4 text-left text-sm font-semibold">Email</th>
-                  <th className="p-4 text-left text-sm font-semibold">Role</th>
-                  <th className="p-4 text-left text-sm font-semibold">Verified</th>
-                  <th className="p-4 text-left text-sm font-semibold">Joined</th>
-                  <th className="p-4 text-left text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user._id} className="border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={user.profilepic || 'https://cdn.vectorstock.com/i/1000v/23/81/default-avatar-profile-icon-vector-18942381.avif'}
-                          alt=""
-                          className="h-8 w-8 rounded-full"
-                        />
-                        <span className="text-sm font-medium">{user.fullName}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm">{user.email}</td>
-                    <td className="p-4">
-                      <select
-                        value={user.role}
-                        onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                        className="text-sm p-1 rounded border border-gray-300 bg-white dark:bg-gray-700"
-                        disabled={user._id === currentUser?._id}
-                      >
-                        <option value="user">user</option>
-                        <option value="Admin">Admin</option>
-                        <option value="superAdmin">superAdmin</option>
-                      </select>
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        user.isVerified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {user.isVerified ? 'Yes' : 'No'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-sm">{new Date(user.createdAt).toLocaleDateString()}</td>
-                    <td className="p-4">
-                      {user._id !== currentUser?._id && (
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="text-red-500 hover:text-red-700 transition"
-                          title="Delete user"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        </Reveal>
       </div>
     </div>
   );
