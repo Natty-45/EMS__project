@@ -73,13 +73,9 @@ export const createEvent = async (req, res, next) => {
 
 export const getAllEvents = async (req, res, next) => {
   try {
-    const events = await Event.find();
-    if (!events) {
-      return res.status(404).json({ error: "No events found!" });
-    }
-    // not show cancelled or ended events
-    if (events.eventStatus === "Cancelled" || events.eventStatus === "Ended") {
-      return res.status(404).json({ error: "No events found!" });
+    const events = await Event.find({ eventStatus: { $nin: ["Cancelled", "Ended"] } });
+    if (!events || events.length === 0) {
+      return res.status(200).json([]);
     }
     res.status(200).json(events);
   } catch (error) {
@@ -150,6 +146,7 @@ export const approveRequestedEvent = async (req, res, next) => {
         eventCategory: requestedEvent.eventCategory,
         host: requestedEvent.host,
         createdBy: requestedEvent.requester,
+        bookingCode: requestedEvent.bookingCode,
       });
       await event.save();
       await RequestedEvent.findByIdAndDelete(eventId);
@@ -276,20 +273,17 @@ export const updateEvent = async (req, res, next) => {
     host,
   } = req.body;
 
-const imageFilenames = req.files?.map(file => file.filename);
-console.log("Updating event with ID:", eventId);
-console.log("Updated data:", {
-  title,
-  description,
-  date,
-  StartTime,
-  location,
-  image,
-  eventType,  
-  eventCategory,
-  host,
-  imageFilenames,
-});
+const imageFilenames = req.files?.map(file => file.filename) || [];
+// Handle existing images (sent as JSON string from frontend)
+let existingImages = [];
+if (req.body.existingImages) {
+  try {
+    existingImages = JSON.parse(req.body.existingImages);
+  } catch (e) {
+    existingImages = [];
+  }
+}
+const allImages = [...existingImages, ...imageFilenames];
 
   try {
     let event;
@@ -341,7 +335,7 @@ console.log("Updated data:", {
     event.date = date;
     event.StartTime = StartTime;
     event.location = location;
-    event.image = imageFilenames;
+    event.image = allImages;
     event.eventType = eventType;
     event.eventCategory = eventCategory;
     event.host = host;
@@ -380,12 +374,8 @@ export const deleteEvent = async (req, res, next) => {
     }
 
     // User can only delete their own event, regardless of whether it's approved or pending
-    if (event.requester?.toString() !== userId?.toString()) {
-
-      console.log("User trying to delete event they don't own:", {
-        userId,
-        event,
-      });
+    const isOwner = event.createdBy?.toString() === userId?.toString() || event.requester?.toString() === userId?.toString();
+    if (!isOwner && userRole !== "Admin") {
       return res
         .status(403)
         .json({ error: "Access Denied. You can only delete your own event!" });
@@ -449,7 +439,7 @@ export const getEventTickets = async (req, res, next) => {
   const eventId = req.params.id; // Event ID to retrieve tickets for
   const userRole = req.userRole; // only Admins can view event tickets
 
-  if (userRole !== "superAdmin" || userRole !== "Admin") {
+  if (userRole !== "superAdmin" && userRole !== "Admin") {
     return res
       .status(403)
       .json({ error: "Access Denied. Only Admins can view event tickets!" });
@@ -477,7 +467,7 @@ export const getEventStats = async (req, res, next) => {
   const eventId = req.params.id; // Event ID to retrieve statistics for
   const userRole = req.userRole; // User's role (admin or user)
 
-  if (userRole !== "superAdmin" || userRole !== "Admin") {
+  if (userRole !== "superAdmin" && userRole !== "Admin") {
     return res
       .status(403)
       .json({ error: "Access Denied. Only Admins can view event statistics!" });
@@ -497,11 +487,11 @@ export const getEventStats = async (req, res, next) => {
     const tickets = await Ticket.find({ eventId: eventId });
 
     // Calculate statistics
-    const totalTicketsSold = tickets.length;
-    const totalRevenue = tickets.reduce(
-      (sum, ticket) => sum + ticket.numberOfTickets * ticket.ticketPrice,
+    const totalTicketsSold = tickets.reduce(
+      (sum, ticket) => sum + ticket.numberOfTickets,
       0
     );
+    const totalRevenue = 0; // No ticket price field in model yet
 
     // Calculate the number of tickets sold per ticket type (e.g., Regular, VIP)
     const ticketTypes = {
@@ -532,7 +522,7 @@ export const getEventStats = async (req, res, next) => {
 export const exportEventData = async (req, res, next) => {
   const userRole = req.userRole; // User's role (admin or user)
 
-  if (userRole !== "superAdmin" || userRole !== "Admin") {
+  if (userRole !== "superAdmin" && userRole !== "Admin") {
     return res
       .status(403)
       .json({ error: "Access Denied. Only Admins can export event data!" });

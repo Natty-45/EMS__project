@@ -21,10 +21,14 @@ import Events from './pages/EventPages/Events';
 import CreateEvent from './pages/EventPages/createEvent';
 import RequestedEvent from './pages/eventAdmin Page/requestedEvent';
 import MyEvents from './pages/userPages/myEvents';
+import MyTickets from './pages/userPages/myTickets';
 import PrivateRoute from './components/privateRoute/privateRoute';
 import BookingPage from './pages/EventPages/bookingPage';
 import ApproveEvent from './pages/eventAdmin Page/approveEvent';
 import UpdateEvent from './pages/userPages/updateEvents';
+import AdminExport from './pages/eventAdmin Page/adminExport';
+import AdminStats from './pages/eventAdmin Page/adminStats';
+import AdminTickets from './pages/eventAdmin Page/adminTickets';
 function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -60,9 +64,13 @@ function App() {
             <Route path='/createEvent' element={<CreateEvent />} />
             <Route path="/requested_events" element={<RequestedEvent />} />
             <Route path='/my-events' element={<MyEvents />} />
+            <Route path='/my-tickets' element={<MyTickets />} />
             <Route path="/booking/:eventId" element={<BookingPage />} />
             <Route path="/requested-event/approve/:eventId" element={<ApproveEvent />} />
             <Route path="/my-events/update/:id" element={<UpdateEvent />} />
+            <Route path="/admin/export" element={<AdminExport />} />
+            <Route path="/admin/stats" element={<AdminStats />} />
+            <Route path="/admin/tickets" element={<AdminTickets />} />
             </Route>
           </Routes>
         </Layout>

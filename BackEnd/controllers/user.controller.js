@@ -111,7 +111,7 @@ export const getTickets = async (req, res, next) => {
             return res.status(404).json({ error: 'User not found' });
         }
         // Find tickets that belong to the user
-        const tickets = await Ticket.find({ user: userId });
+        const tickets = await Ticket.find({ userId: userId });
 
         if (!tickets || tickets.length === 0) {
             return res.status(404).json({ error: 'No tickets found for this user' });
@@ -131,7 +131,7 @@ export const getTicketDetails = async (req, res, next) => {
     const userId = req.userId; // User ID from middleware (VerifiedUser)
 
     // Find the ticket by its ID
-    const ticket = await Ticket.findById(ticketId).populate('eventId', 'title date location privacy').populate('userId', 'fullName email');
+    const ticket = await Ticket.findById(ticketId).populate('eventId', 'title date location eventType').populate('userId', 'fullName email');
     
     // Check if the ticket exists
     if (!ticket) {
@@ -150,7 +150,7 @@ export const getTicketDetails = async (req, res, next) => {
         title: ticket.eventId.title,
         date: ticket.eventId.date,
         location: ticket.eventId.location,
-        privacy: ticket.eventId.privacy,  // You may want to display privacy as well
+        eventType: ticket.eventId.eventType,
       },
       User: {
         fullName: ticket.userId.fullName,
@@ -159,7 +159,7 @@ export const getTicketDetails = async (req, res, next) => {
       ticketType: ticket.ticketType,
       status: ticket.status,
       numberOfTickets: ticket.numberOfTickets,
-      bookingCode: ticket.bookingCode, // Will only be available if the event is private
+      bookingCode: ticket.bookingCode,
       bookingDate: ticket.bookingDate,
     };
 
@@ -167,5 +167,33 @@ export const getTicketDetails = async (req, res, next) => {
   } catch (error) {
     console.error(error);  // Log the error for debugging purposes
     next(error); // Pass error to next middleware for centralized error handling    
+  }
+};
+
+export const contactForm = async (req, res, next) => {
+  try {
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    if (!validateEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Send contact email to admin
+    const transporter = (await import('../nodeMailer/nodeMailer.config.js')).default;
+    await transporter.sendMail({
+      from: email,
+      to: process.env.EMAIL,
+      subject: `Contact Form: ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+      html: `<h3>New Contact Form Submission</h3><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong> ${message}</p>`,
+    });
+
+    res.status(200).json({ message: 'Message sent successfully!' });
+  } catch (error) {
+    next(error);
   }
 };

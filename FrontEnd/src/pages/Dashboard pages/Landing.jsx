@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import EventCard from '../../components/EventComponents/EventCard';
-import { events } from '../../data/events';
 import { motion } from 'framer-motion';
+import useGetAllEvents from '../../hooks/eventHooks/useGetAllEvents';
 
 export default function Landing() {
   const { theme, isLightMode } = useTheme();
-  const upcomingEvents = events.slice(0, 3); // Show only first 3 events
+  const { events, loading } = useGetAllEvents();
+  const upcomingEvents = events.slice(0, 3);
 
   return (
     <div>

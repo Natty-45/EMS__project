@@ -11,9 +11,9 @@ export const useApproveEvent = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Include auth headers if needed
         },
         body: JSON.stringify({ action }),
+        credentials: 'include',
       });
 
       const data = await res.json();

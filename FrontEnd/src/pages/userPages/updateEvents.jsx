@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -32,6 +32,8 @@ const UpdateEvent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const formRef = useRef(null);
+
   // Fetch event details on mount
   useEffect(() => {
     if (!currentUser) {
@@ -56,7 +58,7 @@ const UpdateEvent = () => {
           date: data.date ? data.date.slice(0, 10) : '',
           StartTime: data.StartTime || '',
           location: data.location || '',
-          images: data.images || (data.image ? [data.image] : []), // support both array or single image string fallback
+          images: data.images || (data.image ? [data.image] : []),
           eventType: data.eventType || 'Public',
           eventCategory: data.eventCategory || 'Concert',
           host: data.host || '',
@@ -75,8 +77,6 @@ const UpdateEvent = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-     // <-- FIXED typo here (was fromData)
   };
 
   const handleImageSelect = (e) => {
@@ -96,55 +96,47 @@ const UpdateEvent = () => {
     }));
   };
 
+  // ONLY this is changed:
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const totalImagesCount = formData.images.length + selectedImages.length;
-    if (totalImagesCount < 3 || totalImagesCount > 7) {
-      toast.error('You must have between 3 and 7 images.');
-      return;
+    try {
+      const totalImagesCount = formData.images.length + selectedImages.length;
+      if (totalImagesCount < 3 || totalImagesCount > 7) {
+        toast.error('You must have between 3 and 7 images.');
+        return;
+      }
+
+      // Build FormData manually, using formRef (your form) and appending files + old images JSON
+      const form = new FormData(formRef.current);
+
+      // Append old images JSON separately (your backend expects this key)
+      form.set('existingImages', JSON.stringify(formData.images));
+
+      // Append new images files
+      selectedImages.forEach((img) => {
+        form.append('images', img);
+      });
+
+      // Debug (optional)
+      for (let pair of form.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      // Call your updateEvent hook (make sure it supports FormData)
+      const updated = await updateEvent(id, form, currentUser.token);
+
+      if (updated) {
+        toast.success('Event updated successfully!');
+        navigate('/my-events');
+      } else {
+        toast.error('Failed to update event.');
+      }
+    } catch (error) {
+      console.error('Update Event Error:', error.message);
+      toast.error(error.message);
     }
-
-    const form = new FormData();
-    form.append('title', formData.title);
-    form.append('description', formData.description);
-    form.append('date', formData.date);
-    form.append('StartTime', formData.StartTime);
-    form.append('location', formData.location);
-    form.append('eventType', formData.eventType);
-    form.append('eventCategory', formData.eventCategory);
-    form.append('host', formData.host);
-    if (formData.eventType === 'Private') {
-      form.append('eventPassword', formData.eventPassword);
-    }
-
-    // ✅ FIXED: Append existing image URLs as JSON string
-    form.append('existingImages', JSON.stringify(formData.images));
-
-    // ✅ Append new image files
-    selectedImages.forEach((img) => {
-      form.append('images', img);
-    });
-
-    // Optional: Debug
-    for (let pair of form.entries()) {
-      console.log(`${pair[0]}:`, pair[1]);
-    }
-
-    const updated = await updateEvent(id, form, currentUser.token);
-    if (updated) {
-      toast.success('Event updated successfully!');
-      navigate('/my-events');
-    } else {
-      toast.error('Failed to update event.');
-    }
-
-  } catch (error) {
-    console.error("Update Event Error:", error.message);
-    toast.error(error.message);
-  }
-};
+  };
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
@@ -165,7 +157,7 @@ const UpdateEvent = () => {
     <div className={`min-h-screen flex items-center justify-center ${theme.background} pt-20 px-4`}>
       <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg p-8 rounded-lg shadow-lg max-w-5xl w-full mt-20 mb-10">
         <h2 className={`text-4xl font-bold text-center mb-6 ${theme.text}`}>Update Event</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Title */}
             <div>
@@ -188,6 +180,7 @@ const UpdateEvent = () => {
                   <UserCircleIcon className="h-16 w-16 text-gray-500 absolute top-0 left-0" />
                   <input
                     type="file"
+                    name="images" // IMPORTANT: name should match expected backend field
                     multiple
                     accept="image/*"
                     onChange={handleImageSelect}
@@ -215,7 +208,7 @@ const UpdateEvent = () => {
                 {formData.images.map((url, index) => (
                   <div key={`existing-${index}`} className="relative w-24 h-24">
                     <img
-                      src={url}
+                      src={url.startsWith('http') ? url : `/uploads/${url}`}
                       alt={`Existing Image ${index + 1}`}
                       className="w-full h-full object-cover rounded-md shadow-md"
                     />

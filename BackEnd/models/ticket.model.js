@@ -23,7 +23,6 @@ const ticketSchema = new mongoose.Schema({
     },
     bookingCode: {
         type: String, 
-        required: function () { return this.eventId.privacy === 'Private'; },  // Only required for private events
     },
     numberOfTickets: {
         type: Number,

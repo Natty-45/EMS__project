@@ -39,7 +39,7 @@ const Events = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {events.map((event) => (
             <div key={event._id} className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg p-6 rounded-lg shadow-lg">
-              <img src={event.image} alt={event.title} className="w-full h-40 object-cover rounded-md mb-4" />
+              <img src={event.image?.[0] ? (event.image[0].startsWith('http') ? event.image[0] : `/uploads/${event.image[0]}`) : '/placeholder.jpg'} alt={event.title} className="w-full h-40 object-cover rounded-md mb-4" />
               <h3 className={`text-2xl font-bold mb-2 ${theme.text}`}>{event.title}</h3>
               <div className="flex items-center space-x-2 mb-2">
                 <CalendarIcon className="h-5 w-5 text-gray-500" />

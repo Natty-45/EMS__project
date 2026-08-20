@@ -36,7 +36,7 @@ const MyEvents = () => {
             <div className="h-48 w-full">
               {event.image?.[0] ? (
                 <img
-                  src={`http://localhost:8000/uploads/${event.image[0]}`}
+                  src={event.image[0].startsWith('http') ? event.image[0] : `/uploads/${event.image[0]}`}
                   alt={event.title}
                   className="w-full h-full object-cover"
                 />

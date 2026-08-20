@@ -5,7 +5,11 @@ import { errorHandler } from '../utils/ErrorHandler.js';
 
 const VerifiedUser = async (req, res, next) => {
     try {
-        const token = req.cookies.user_token;
+        // Support both cookie auth and Bearer token auth
+        let token = req.cookies.user_token;
+        if (!token && req.headers.authorization) {
+            token = req.headers.authorization.replace('Bearer ', '');
+        }
         if(!token){
             return next(errorHandler(401, "Unauthorized"));
         }

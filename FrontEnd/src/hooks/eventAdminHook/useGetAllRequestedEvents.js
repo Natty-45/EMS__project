@@ -9,7 +9,9 @@ const useGetAllRequestedEvents = () => {
   useEffect(() => {
     const fetchRequestedEvents = async () => {
       try {
-        const response = await fetch('/api/event/requested_events');
+        const response = await fetch('/api/event/requested_events', {
+        credentials: 'include',
+      });
 
         // if (!response.ok) {
         //   throw new Error('Failed to fetch requested events');

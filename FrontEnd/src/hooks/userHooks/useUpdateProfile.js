@@ -78,6 +78,7 @@ const useUpdateProfile = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(updatedData),
+        credentials: 'include',
       });
 
       const data = await res.json();

@@ -118,7 +118,7 @@ export const login = async (req, res, next) => {
         if(!isPassword){
             return res.status(400).json({error: 'Wrong Credentials!'})
         }
-        if(validUser.isVerified === "false"){
+        if(validUser.isVerified === false){
             return res.status(400).json({error: 'The User is not Verified'})
         }
         const token = await generateToken(validUser._id, res);

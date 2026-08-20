@@ -23,7 +23,7 @@ const ApproveEventPage = () => {
         <h1 className="text-3xl font-semibold mb-4">{event.title}</h1>
 
         <img
-          src={event.image?.[0]}
+          src={event.image?.[0] ? (event.image[0].startsWith('http') ? event.image[0] : `/uploads/${event.image[0]}`) : '/placeholder.jpg'}
           alt="Event"
           className="rounded-lg mb-4 w-full max-h-[400px] object-cover"
         />

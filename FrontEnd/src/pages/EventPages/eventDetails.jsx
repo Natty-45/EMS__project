@@ -36,7 +36,7 @@ const EventDetails = () => {
   const canBook =
     !isRequestedEvent && (event.eventStatus === 'Active' || event.eventStatus === 'Pending');
 
-  const firstImage = event.image && event.image.length > 0 ? event.image[0] : '/placeholder.jpg';
+  const firstImage = event.image && event.image.length > 0 ? (event.image[0].startsWith('http') ? event.image[0] : `/uploads/${event.image[0]}`) : '/placeholder.jpg';
 
   const handleNavigateToBooking = () => {
     navigate(`/booking/${eventId}`);

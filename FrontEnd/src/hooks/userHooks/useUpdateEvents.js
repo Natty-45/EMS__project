@@ -16,11 +16,8 @@ export const useUpdateEvent = () => {
     try {
       const res = await fetch(`/api/event/update-event/${eventId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Make sure token is passed correctly
-        },
-        body: (updatedData),
+        body: updatedData,
+        credentials: 'include',
       });
 
       if (!res.ok) {

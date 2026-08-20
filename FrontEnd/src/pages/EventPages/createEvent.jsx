@@ -66,7 +66,7 @@ const CreateEvent = () => {
     form.append('host', formData.host);
 
     if (formData.eventType === 'Private') {
-      form.append('eventPassword', formData.eventPassword);
+      form.append('bookingCode', formData.eventPassword);
     }
 
     selectedImages.forEach((image) => {
