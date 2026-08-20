@@ -29,6 +29,8 @@ import UpdateEvent from './pages/userPages/updateEvents';
 import AdminExport from './pages/eventAdmin Page/adminExport';
 import AdminStats from './pages/eventAdmin Page/adminStats';
 import AdminTickets from './pages/eventAdmin Page/adminTickets';
+import AdminDashboard from './pages/eventAdmin Page/adminDashboard';
+import NotFound from './pages/Dashboard pages/NotFound';
 function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -71,7 +73,9 @@ function App() {
             <Route path="/admin/export" element={<AdminExport />} />
             <Route path="/admin/stats" element={<AdminStats />} />
             <Route path="/admin/tickets" element={<AdminTickets />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             </Route>
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
       </Router>

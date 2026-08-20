@@ -5,6 +5,21 @@ import Ticket from "../models/ticket.model.js";
 import Event from "../models/event.model.js";
 import User from "../models/user.model.js";
 import RequestedEvent from "../models/requestedEvent.model.js";
+import transporter from "../nodeMailer/nodeMailer.config.js";
+
+// Auto-end past events (runs every hour)
+cron.schedule('0 * * * *', async () => {
+  try {
+    const now = new Date();
+    await Event.updateMany(
+      { date: { $lt: now }, eventStatus: { $nin: ['Ended', 'Cancelled'] } },
+      { $set: { eventStatus: 'Ended' } }
+    );
+    console.log('Auto-ended past events');
+  } catch (error) {
+    console.error('Error auto-ending events:', error.message);
+  }
+});
 
 // controllers/eventController.js
 
@@ -151,9 +166,20 @@ export const approveRequestedEvent = async (req, res, next) => {
       await event.save();
       await RequestedEvent.findByIdAndDelete(eventId);
 
-      // send an Approval email to the requester
+      // Send approval email to the requester
       const user = await User.findById(requestedEvent.requester);
-      // await sendEventRequestApprovalEmail(user.email, event.title, action);
+      if (user) {
+        try {
+          await transporter.sendMail({
+            from: process.env.EMAIL,
+            to: user.email,
+            subject: `Event Approved: ${event.title}`,
+            html: `<h2>Your event has been approved!</h2><p>Your event <strong>${event.title}</strong> has been approved and is now live.</p><p>Best regards,<br>EMS Team</p>`,
+          });
+        } catch (emailError) {
+          console.error('Error sending approval email:', emailError.message);
+        }
+      }
       res
         .status(200)
         .json({ message: "Event approved and created successfully.", event });
@@ -161,15 +187,29 @@ export const approveRequestedEvent = async (req, res, next) => {
       requestedEvent.requestEventStatus = "Rejected";
       await requestedEvent.save();
 
-      // send an Disapproval email to the requester
+      // Send rejection email to the requester
       const user = await User.findById(requestedEvent.requester);
-      // await sendEventRequestRejectionEmail(user.email, requestedEvent.title, action);
-      cron.schedule("*/3 * * * *", async () => {
-        await RequestedEvent.findByIdAndDelete(eventId);
-        console.log(
-          `Requested event with ID ${eventId} has been deleted after 3 minutes.`
-        );
-      });
+      if (user) {
+        try {
+          await transporter.sendMail({
+            from: process.env.EMAIL,
+            to: user.email,
+            subject: `Event Rejected: ${requestedEvent.title}`,
+            html: `<h2>Your event request was not approved</h2><p>Your event <strong>${requestedEvent.title}</strong> was not approved at this time.</p><p>You can create a new event request with modifications.</p><p>Best regards,<br>EMS Team</p>`,
+          });
+        } catch (emailError) {
+          console.error('Error sending rejection email:', emailError.message);
+        }
+      }
+      // Delete after 3 minutes using setTimeout instead of cron
+      setTimeout(async () => {
+        try {
+          await RequestedEvent.findByIdAndDelete(eventId);
+          console.log(`Rejected event ${eventId} deleted after 3 minutes.`);
+        } catch (err) {
+          console.error('Error deleting rejected event:', err.message);
+        }
+      }, 3 * 60 * 1000);
 
       res
         .status(200)

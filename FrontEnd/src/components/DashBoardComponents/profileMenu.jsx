@@ -40,13 +40,16 @@ const ProfileMenu = () => {
 
       {dropdownOpen && (
         <div ref={dropdownRef} className={`absolute right-0 mt-2 w-56 ${theme.background} border border-gray-200 rounded-md shadow-lg z-50`}>
-          {currentUser?.role === 'Admin' ? (
+          {currentUser?.role === 'Admin' || currentUser?.role === 'superAdmin' ? (
             <>
               <Link to="/requested_events" className={`block px-4 py-2 ${isLightMode ? theme.text : 'text-black'} hover:bg-gray-100`}>
                 Requested Events
               </Link>
               <Link to="/createEvent" className={`block px-4 py-2 ${isLightMode ? theme.text : 'text-black'} hover:bg-gray-100`}>
                 Create Event
+              </Link>
+              <Link to="/my-events" className={`block px-4 py-2 ${isLightMode ? theme.text : 'text-black'} hover:bg-gray-100`}>
+                My Events
               </Link>
 
               {/* Reports Group */}
@@ -60,6 +63,15 @@ const ProfileMenu = () => {
               <Link to="/admin/tickets" className={`block px-4 py-2 ${isLightMode ? theme.text : 'text-black'} hover:bg-gray-100`}>
                 Event Tickets
               </Link>
+
+              {currentUser?.role === 'superAdmin' && (
+                <>
+                  <div className="px-4 py-2 font-medium text-sm text-gray-500">Management</div>
+                  <Link to="/admin/dashboard" className={`block px-4 py-2 ${isLightMode ? theme.text : 'text-black'} hover:bg-gray-100`}>
+                    User Management
+                  </Link>
+                </>
+              )}
 
               <Link to="/updateProfile" className={`block px-4 py-2 ${isLightMode ? theme.text : 'text-black'} hover:bg-gray-100`}>
                 Edit Profile

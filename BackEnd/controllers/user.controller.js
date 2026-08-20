@@ -110,11 +110,11 @@ export const getTickets = async (req, res, next) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-        // Find tickets that belong to the user
-        const tickets = await Ticket.find({ userId: userId });
+        // Find tickets that belong to the user with populated event data
+        const tickets = await Ticket.find({ userId: userId }).populate('eventId', 'title date StartTime location eventType eventCategory host');
 
         if (!tickets || tickets.length === 0) {
-            return res.status(404).json({ error: 'No tickets found for this user' });
+            return res.status(200).json([]);
         }
 
         res.status(200).json(tickets);
@@ -167,6 +167,83 @@ export const getTicketDetails = async (req, res, next) => {
   } catch (error) {
     console.error(error);  // Log the error for debugging purposes
     next(error); // Pass error to next middleware for centralized error handling    
+  }
+};
+
+// superAdmin: Get all users
+export const getAllUsers = async (req, res, next) => {
+  try {
+    if (req.userRole !== 'superAdmin' && req.userRole !== 'Admin') {
+      return res.status(403).json({ error: 'Access Denied. Admins only.' });
+    }
+    const users = await User.find().select('-password -verificationToken -resetPasswordToken');
+    res.status(200).json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// superAdmin: Update user role
+export const updateUserRole = async (req, res, next) => {
+  try {
+    if (req.userRole !== 'superAdmin') {
+      return res.status(403).json({ error: 'Access Denied. Only superAdmin can change roles.' });
+    }
+    const { role } = req.body;
+    const userId = req.params.id;
+
+    if (!['user', 'Admin', 'superAdmin'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    const user = await User.findByIdAndUpdate(userId, { role }, { new: true }).select('-password');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json({ message: 'User role updated', user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// superAdmin: Delete any user
+export const adminDeleteUser = async (req, res, next) => {
+  try {
+    if (req.userRole !== 'superAdmin') {
+      return res.status(403).json({ error: 'Access Denied. Only superAdmin can delete users.' });
+    }
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Cancel a ticket
+export const cancelTicket = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const ticketId = req.params.id;
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+    if (ticket.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ error: 'Not authorized to cancel this ticket' });
+    }
+    if (ticket.status === 'Cancelled') {
+      return res.status(400).json({ error: 'Ticket already cancelled' });
+    }
+
+    ticket.status = 'Cancelled';
+    await ticket.save();
+    res.status(200).json({ message: 'Ticket cancelled successfully', ticket });
+  } catch (error) {
+    next(error);
   }
 };
 

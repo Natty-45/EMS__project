@@ -2,13 +2,23 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import useGetMyTickets from '../../hooks/userHooks/useGetMyTickets';
+import { useCancelTicket } from '../../hooks/userHooks/useCancelTicket';
 import { useTheme } from '../../contexts/ThemeContext';
-import { TicketIcon, CalendarIcon, ClockIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { TicketIcon, CalendarIcon, MapPinIcon, ClockIcon, TagIcon } from '@heroicons/react/24/outline';
 
 const MyTickets = () => {
   const { tickets, loading, error } = useGetMyTickets();
+  const { cancelTicket, loading: cancelling } = useCancelTicket();
   const { theme } = useTheme();
   const navigate = useNavigate();
+
+  const handleCancel = async (ticketId) => {
+    if (!window.confirm('Are you sure you want to cancel this ticket?')) return;
+    const success = await cancelTicket(ticketId);
+    if (success) {
+      window.location.reload();
+    }
+  };
 
   return (
     <div className={`min-h-screen p-6 ${theme.background}`}>
@@ -36,7 +46,7 @@ const MyTickets = () => {
         {tickets.map((ticket) => (
           <motion.div
             key={ticket._id}
-            className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl`}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.03 }}
@@ -45,7 +55,7 @@ const MyTickets = () => {
             {/* Ticket Header */}
             <div className={`p-4 ${ticket.status === 'Booked' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-bold">{ticket.eventId?.title || 'Event'}</h2>
+                <h2 className="text-lg font-bold truncate">{ticket.eventId?.title || 'Event'}</h2>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                   ticket.status === 'Booked' ? 'bg-green-700' : 'bg-red-700'
                 }`}>
@@ -57,16 +67,20 @@ const MyTickets = () => {
             {/* Ticket Body */}
             <div className="p-4 space-y-3">
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                <CalendarIcon className="h-5 w-5" />
+                <CalendarIcon className="h-5 w-5 flex-shrink-0" />
                 <span>{ticket.eventId?.date ? new Date(ticket.eventId.date).toLocaleDateString() : 'N/A'}</span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                <MapPinIcon className="h-5 w-5" />
+                <ClockIcon className="h-5 w-5 flex-shrink-0" />
+                <span>{ticket.eventId?.StartTime || 'N/A'}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <MapPinIcon className="h-5 w-5 flex-shrink-0" />
                 <span>{ticket.eventId?.location || 'N/A'}</span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                <TicketIcon className="h-5 w-5" />
-                <span>Qty: {ticket.numberOfTickets}</span>
+                <TagIcon className="h-5 w-5 flex-shrink-0" />
+                <span>{ticket.ticketType} × {ticket.numberOfTickets}</span>
               </div>
               <div className="text-xs text-gray-500">
                 Booked on: {new Date(ticket.bookingDate).toLocaleDateString()}
@@ -74,13 +88,22 @@ const MyTickets = () => {
             </div>
 
             {/* Ticket Footer */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-2">
               <button
                 onClick={() => navigate(`/events/${ticket.eventId?._id}`)}
-                className="w-full bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition"
+                className="flex-1 bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition text-sm"
               >
                 View Event
               </button>
+              {ticket.status === 'Booked' && (
+                <button
+                  onClick={() => handleCancel(ticket._id)}
+                  disabled={cancelling}
+                  className="flex-1 bg-red-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-600 transition text-sm disabled:opacity-50"
+                >
+                  {cancelling ? 'Cancelling...' : 'Cancel'}
+                </button>
+              )}
             </div>
           </motion.div>
         ))}

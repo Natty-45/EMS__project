@@ -15,6 +15,7 @@ const EventDetails = () => {
   const { theme } = useTheme();
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const [selectedImage, setSelectedImage] = React.useState(0);
 
   const { event, loading, error } = useEventDetails(eventId);
 
@@ -36,7 +37,13 @@ const EventDetails = () => {
   const canBook =
     !isRequestedEvent && (event.eventStatus === 'Active' || event.eventStatus === 'Pending');
 
-  const firstImage = event.image && event.image.length > 0 ? (event.image[0].startsWith('http') ? event.image[0] : `/uploads/${event.image[0]}`) : '/placeholder.jpg';
+  const getImageUrl = (img) => {
+    if (!img) return '/placeholder.jpg';
+    return img.startsWith('http') ? img : `/uploads/${img}`;
+  };
+
+  const images = event.image && event.image.length > 0 ? event.image : [];
+  const mainImage = images.length > 0 ? getImageUrl(images[selectedImage]) : '/placeholder.jpg';
 
   const handleNavigateToBooking = () => {
     navigate(`/booking/${eventId}`);
@@ -60,12 +67,31 @@ const EventDetails = () => {
           {event.title || 'Untitled Event'}
         </h2>
 
+        {/* Main Image */}
         <motion.img
-          src={firstImage}
+          src={mainImage}
           alt={event.title || 'Event image'}
-          className="relative w-full h-56 sm:h-64 object-cover rounded-lg shadow-md mb-6 border border-transparent hover:border-blue-500 transition"
+          className="relative w-full h-56 sm:h-64 object-cover rounded-lg shadow-md mb-4 border border-transparent hover:border-blue-500 transition"
           whileHover={{ scale: 1.05 }}
+          key={selectedImage}
         />
+
+        {/* Image Gallery Thumbnails */}
+        {images.length > 1 && (
+          <div className="relative flex gap-2 mb-6 overflow-x-auto pb-2">
+            {images.map((img, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedImage(index)}
+                className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition ${
+                  selectedImage === index ? 'border-blue-500' : 'border-transparent opacity-70 hover:opacity-100'
+                }`}
+              >
+                <img src={getImageUrl(img)} alt={`Image ${index + 1}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="relative flex flex-col space-y-4 mb-6 p-4 bg-opacity-30 backdrop-blur-lg rounded-lg">
           {[
