@@ -68,8 +68,8 @@ const AdminStats = () => {
                 <p className="text-3xl font-bold text-green-600">{stats.stats.ticketTypes.Regular || 0}</p>
                 <p className="text-sm text-gray-600">Regular Tickets</p>
               </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-3xl font-bold text-purple-600">{stats.stats.ticketTypes.VIP || 0}</p>
+              <div className="text-center p-4 bg-brand-50 rounded-lg">
+                <p className="text-3xl font-bold text-brand-600">{stats.stats.ticketTypes.VIP || 0}</p>
                 <p className="text-sm text-gray-600">VIP Tickets</p>
               </div>
               <div className="text-center p-4 bg-yellow-50 rounded-lg">

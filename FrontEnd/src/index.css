@@ -1,3 +1,65 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', sans-serif;
+  }
+
+  ::selection {
+    background: rgba(51, 97, 255, 0.3);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3361ff, #1d3ff5);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #1d3ff5, #db2777);
+  }
+}
+
+@layer components {
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-500 via-brand-400 to-brand-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x;
+  }
+
+  .glass {
+    @apply bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-6 py-3 font-semibold text-white shadow-lg shadow-brand-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-brand-500/40 hover:scale-[1.03] active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 dark:border-white/20 px-6 py-3 font-semibold text-gray-800 dark:text-white transition-all duration-300 hover:border-brand-500 hover:text-brand-500 hover:scale-[1.03] active:scale-95;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white/70 dark:bg-white/5 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all duration-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-brand-500/10;
+  }
+}

@@ -1,53 +1,74 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from "../../contexts/ThemeContext";
 import useForgetPassword from '../../hooks/authHooks/useForgetPassword';
+import { EnvelopeIcon, ArrowRightIcon, KeyIcon } from '@heroicons/react/24/outline';
 
 function ForgetPassword() {
   const { theme } = useTheme();
-  const navigate = useNavigate();
   const { email, loading, handleChange, handleSubmit } = useForgetPassword();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 relative">
-      <div className="absolute inset-0 z-0">
-        <img
-          src="https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80"
-          alt="Background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-      </div>
+    <div className={`relative min-h-screen flex items-center justify-center overflow-hidden ${theme.background}`}>
+      <div className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-brand-500/25 blur-[130px] animate-float-slow" />
+      <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-brand-500/20 blur-[130px] animate-float-slow" />
+
       <motion.div
-        className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg p-8 rounded-lg shadow-lg max-w-md w-full mt-20 mb-10"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        className="relative z-10 w-full max-w-md px-4 pt-24 pb-16"
+        initial={{ opacity: 0, y: 40, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
       >
-        <h2 className={`text-2xl ${theme.text} font-bold mb-6 text-center`}>Forgot Password</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className={`block ${theme.text} mb-2`}>Email Address</label>
-            <input
-              type="email"
-              id="email"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-gray-600 ${theme.text}`}
-              value={email}
-              onChange={handleChange}
-              required
-            />
+        <div className={`relative overflow-hidden rounded-[2rem] ${theme.card} border ${theme.border} p-8 shadow-2xl shadow-brand-500/10 backdrop-blur-xl sm:p-10`}>
+          <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-gradient-to-br from-brand-600 to-brand-400 opacity-10 blur-2xl" />
+
+          <div className="relative mb-8 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-lg shadow-brand-500/30">
+              <KeyIcon className="h-7 w-7 text-white" />
+            </span>
+            <h2 className={`mt-5 font-display text-2xl font-bold ${theme.text}`}>Forgot Password?</h2>
+            <p className={`mt-1 text-sm ${theme.textSecondary}`}>
+              Enter your email and we'll send you a reset link.
+            </p>
           </div>
-          <motion.button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={loading}
-          >
-            {loading ? 'Sending...' : 'Send Reset Link'}
-          </motion.button>
-        </form>
+
+          <form onSubmit={handleSubmit} className="relative space-y-5">
+            <div>
+              <label htmlFor="email" className={`mb-2 block text-sm font-semibold ${theme.text}`}>Email Address</label>
+              <div className="relative">
+                <EnvelopeIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="email"
+                  id="email"
+                  className="input-field pl-12"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <motion.button
+              type="submit"
+              className="btn-primary group w-full"
+              whileTap={{ scale: 0.97 }}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  Send Reset Link
+                  <ArrowRightIcon className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </>
+              )}
+            </motion.button>
+          </form>
+        </div>
       </motion.div>
     </div>
   );

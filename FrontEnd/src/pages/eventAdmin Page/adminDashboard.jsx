@@ -104,8 +104,8 @@ const AdminDashboard = () => {
             <p className={`text-sm ${theme.textSecondary}`}>Admins</p>
           </div>
           <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-lg rounded-lg p-4 text-center">
-            <TicketIcon className="h-8 w-8 mx-auto text-purple-500 mb-2" />
-            <p className="text-2xl font-bold text-purple-600">{stats.verified}</p>
+            <TicketIcon className="h-8 w-8 mx-auto text-brand-500 mb-2" />
+            <p className="text-2xl font-bold text-brand-600">{stats.verified}</p>
             <p className={`text-sm ${theme.textSecondary}`}>Verified Users</p>
           </div>
         </div>

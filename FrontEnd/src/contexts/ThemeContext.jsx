@@ -1,19 +1,29 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const themes = {
   light: {
     name: 'light',
-    background: 'bg-white',
-    text: 'text-black',
-    textSecondary: 'text-gray-700',
-    card: 'bg-gray-100'
+    mode: 'light',
+    background: 'bg-slate-50',
+    text: 'text-slate-900',
+    textSecondary: 'text-slate-600',
+    card: 'bg-white',
+    header: 'bg-white/80',
+    border: 'border-slate-200',
+    primary: 'bg-brand-500',
+    gradient: 'from-brand-500 to-brand-700',
   },
   dark: {
     name: 'dark',
-    background: 'bg-gray-900',
+    mode: 'dark',
+    background: 'bg-slate-950',
     text: 'text-white',
-    textSecondary: 'text-gray-400',
-    card: 'bg-gray-800'
+    textSecondary: 'text-slate-400',
+    card: 'bg-slate-900',
+    header: 'bg-slate-950/80',
+    border: 'border-slate-800',
+    primary: 'bg-brand-500',
+    gradient: 'from-brand-400 to-brand-600',
   }
 };
 
@@ -23,8 +33,16 @@ export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(themes.light);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme.name === 'light' ? themes.dark : themes.light);
+    setTheme(prevTheme => {
+      const next = prevTheme.name === 'light' ? themes.dark : themes.light;
+      document.documentElement.classList.toggle('dark', next.name === 'dark');
+      return next;
+    });
   };
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme.name === 'dark');
+  }, []);
 
   const isLightMode = theme.name === 'light';
 

@@ -10,7 +10,7 @@ const TicketReceipt = ({ ticket, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         {/* Receipt Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white text-center">
+        <div className="bg-gradient-to-r from-brand-600 to-brand-400 p-6 text-white text-center">
           <TicketIcon className="h-12 w-12 mx-auto mb-2" />
           <h2 className="text-2xl font-bold">Event Ticket</h2>
         </div>

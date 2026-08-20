@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../contexts/ThemeContext";
 import useVerifyEmail from "../../hooks/authHooks/useVerifyEmail";
+import { EnvelopeIcon, ArrowPathIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 
 const EmailVerificationPage = () => {
     const { theme } = useTheme();
@@ -30,7 +31,7 @@ const EmailVerificationPage = () => {
         } else {
             newCode[index] = value;
             setCode(newCode);
-            
+
             // Move focus to the next input field if value is entered
             if (value && index < 5) {
                 inputRefs.current[index + 1].focus();
@@ -51,79 +52,96 @@ const EmailVerificationPage = () => {
     };
 
     return (
-        <div
-            className='min-h-screen flex items-center justify-center'
-            style={{ 
-                backgroundImage: 'url("https://images.pexels.com/photos/919734/pexels-photo-919734.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center' 
-            }}
-        >
-            <motion.div 
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ duration: 0.5 }} 
-                className='bg-white bg-opacity-30 backdrop-filter 
-                backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md'
+        <div className={`relative min-h-screen flex items-center justify-center overflow-hidden ${theme.background}`}>
+            <div className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-brand-500/25 blur-[130px] animate-float-slow" />
+            <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-brand-500/20 blur-[130px] animate-float-slow" />
+
+            <motion.div
+                initial={{ opacity: 0, y: -40, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
+                className="relative z-10 w-full max-w-md px-4 pt-24 pb-16"
             >
-                <h2 className={`text-3xl font-bold text-center mb-6 ${theme.text}`}>
-                    Verify Your Email
-                </h2>
-                <p className={`text-center ${theme.textSecondary} font-semibold mb-6`}>
-                    Enter the 6-digit code sent to your email address.
-                </p>
-                <form onSubmit={handleSubmit} className='space-y-6'>
-                    <div className='flex justify-between'>
-                        {code.map((digit, index) => (
-                            <input 
-                                key={index} 
-                                ref={(el) => (inputRefs.current[index] = el)} 
-                                type='text' 
-                                maxLength='1' 
-                                value={digit}
-                                onChange={(e) => handleChange(index, e.target.value)} 
-                                onKeyDown={(e) => handleKeyDown(index, e)}
-                                className={`w-12 h-12 text-center text-2xl font-bold
-                                bg-gray-700 bg-opacity-30 focus:bg-white focus:bg-opacity-100
-                                ${theme.text} border-2 border-gray-600 rounded-lg
-                                focus:border-blue-500 focus:outline-none`} 
-                            />
-                        ))}
+                <div className={`relative overflow-hidden rounded-[2rem] ${theme.card} border ${theme.border} p-8 shadow-2xl shadow-brand-500/10 backdrop-blur-xl sm:p-10`}>
+                    <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-gradient-to-br from-brand-600 to-brand-400 opacity-10 blur-2xl" />
+
+                    <div className="relative mb-8 text-center">
+                        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-lg shadow-brand-500/30">
+                            <ShieldCheckIcon className="h-7 w-7 text-white" />
+                        </span>
+                        <h2 className={`mt-5 font-display text-2xl font-bold ${theme.text}`}>Verify Your Email</h2>
+                        <p className={`mt-1 text-sm ${theme.textSecondary}`}>
+                            Enter the 6-digit code sent to your email address.
+                        </p>
                     </div>
-                    
-                    {error && <p className="text-red-500 mb-4">{error}</p>}
-                    
-                    <motion.button 
-                        whileHover={{ scale: 1.05 }} 
-                        whileTap={{ scale: 0.95 }} 
-                        type='submit' 
-                        disabled={loading || code.some((digit) => !digit)}
-                        className={`w-full bg-gradient-to-r from-blue-500 to-sky-900
-                        ${theme.text} font-bold py-3 px-4 rounded-lg shadow-lg
-                        hover:from-sky-900 hover:to-indigo-800 
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 
-                        focus:ring-opacity-50 disabled:opacity-50`}
-                    >
-                        {loading ? "Verifying..." : "Verify Email"}
-                    </motion.button>
-                    
-                    <div className="text-center mt-4">
-                        {canResend ? (
-                            <button
-                                onClick={resendVerificationCode}
-                                className={`w-full bg-gradient-to-r from-blue-500 to-sky-900
-                        ${theme.text} font-bold py-3 px-4 rounded-lg shadow-lg
-                        hover:from-sky-900 hover:to-indigo-800 
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 
-                        focus:ring-opacity-50 disabled:opacity-50`}
+
+                    <form onSubmit={handleSubmit} className="relative space-y-6">
+                        <div className="flex justify-between gap-2">
+                            {code.map((digit, index) => (
+                                <motion.input
+                                    key={index}
+                                    ref={(el) => (inputRefs.current[index] = el)}
+                                    type="text"
+                                    maxLength="1"
+                                    value={digit}
+                                    onChange={(e) => handleChange(index, e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(index, e)}
+                                    whileFocus={{ scale: 1.1 }}
+                                    className={`h-12 w-12 rounded-xl border-2 bg-white/70 text-center font-display text-2xl font-bold text-slate-900 outline-none transition-all duration-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 dark:bg-white/5 dark:text-white dark:border-white/10`}
+                                />
+                            ))}
+                        </div>
+
+                        {error && (
+                            <motion.p
+                                className="rounded-xl bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-500"
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
                             >
-                                Send Code Again
-                            </button>
-                        ) : (
-                            <p className="text-gray-500">{`You can request a new code in ${resendCooldown}s`}</p>
+                                {error}
+                            </motion.p>
                         )}
-                    </div>
-                </form>
+
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.97 }}
+                            type="submit"
+                            disabled={loading || code.some((digit) => !digit)}
+                            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading ? (
+                                <>
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                                    Verifying...
+                                </>
+                            ) : (
+                                <>
+                                    <EnvelopeIcon className="h-5 w-5" />
+                                    Verify Email
+                                </>
+                            )}
+                        </motion.button>
+
+                        <div className="text-center">
+                            {canResend ? (
+                                <motion.button
+                                    onClick={resendVerificationCode}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    className="btn-ghost w-full"
+                                >
+                                    <ArrowPathIcon className="h-5 w-5" />
+                                    Send Code Again
+                                </motion.button>
+                            ) : (
+                                <p className={`text-sm ${theme.textSecondary}`}>
+                                    You can request a new code in{" "}
+                                    <span className="font-bold text-brand-500">{resendCooldown}s</span>
+                                </p>
+                            )}
+                        </div>
+                    </form>
+                </div>
             </motion.div>
         </div>
     );

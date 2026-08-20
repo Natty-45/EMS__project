@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
   CalendarIcon,
@@ -7,9 +7,12 @@ import {
   MapPinIcon,
   UserIcon,
   TagIcon,
+  TicketIcon,
+  ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import useEventDetails from '../../hooks/eventHooks/useEventDetails';
 import { motion } from 'framer-motion';
+import { format } from 'date-fns';
 
 const EventDetails = () => {
   const { theme } = useTheme();
@@ -20,15 +23,30 @@ const EventDetails = () => {
   const { event, loading, error } = useEventDetails(eventId);
 
   if (loading) {
-    return <div className="text-center mt-20 text-lg font-semibold animate-pulse">Loading...</div>;
+    return (
+      <div className={`flex min-h-screen items-center justify-center ${theme.background}`}>
+        <div className="flex items-center gap-3 rounded-full bg-brand-500/10 px-6 py-3 text-brand-600 dark:text-brand-400">
+          <span className="h-2 w-2 animate-ping rounded-full bg-brand-500" />
+          Loading event...
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-center mt-20 text-red-500 font-semibold">{error}</div>;
+    return (
+      <div className={`flex min-h-screen items-center justify-center ${theme.background}`}>
+        <p className="text-lg font-semibold text-red-500">{error}</p>
+      </div>
+    );
   }
 
   if (!event) {
-    return <div className="text-center mt-20 text-lg font-semibold">Event not found</div>;
+    return (
+      <div className={`flex min-h-screen items-center justify-center ${theme.background}`}>
+        <p className="text-lg font-semibold">Event not found</p>
+      </div>
+    );
   }
 
   const isRequestedEvent =
@@ -49,95 +67,163 @@ const EventDetails = () => {
     navigate(`/booking/${eventId}`);
   };
 
+  const details = [
+    { icon: CalendarIcon, label: 'Date', text: format(new Date(event.date), 'MMMM d, yyyy') },
+    { icon: ClockIcon, label: 'Time', text: event.StartTime },
+    { icon: MapPinIcon, label: 'Location', text: event.location },
+    { icon: UserIcon, label: 'Host', text: event.host },
+    { icon: TagIcon, label: 'Category', text: event.eventCategory },
+  ];
+
   return (
-    <div
-      className={`min-h-screen flex items-center justify-center ${theme.background} pt-20 px-4 sm:px-8`}
-    >
-      <motion.div
-        className="relative bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-xl max-w-3xl w-full mt-20 mb-10 border border-transparent dark:border-gray-700 overflow-hidden"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 opacity-20 blur-xl" />
+    <div className={`relative min-h-screen ${theme.background} pt-32 pb-20`}>
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center overflow-hidden">
+        <div className="h-80 w-80 rounded-full bg-brand-500/20 blur-[130px] animate-pulse-glow" />
+        <div className="h-72 w-72 rounded-full bg-brand-500/15 blur-[120px] animate-float-slow" />
+      </div>
 
-        <h2
-          className={`relative text-3xl sm:text-4xl font-bold text-center mb-6 ${theme.text} tracking-wide`}
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <Link
+          to="/events"
+          className={`mb-8 inline-flex items-center gap-2 text-sm font-semibold ${theme.textSecondary} transition-colors hover:text-brand-500`}
         >
-          {event.title || 'Untitled Event'}
-        </h2>
+          <ArrowLeftIcon className="h-4 w-4" />
+          Back to all events
+        </Link>
 
-        {/* Main Image */}
-        <motion.img
-          src={mainImage}
-          alt={event.title || 'Event image'}
-          className="relative w-full h-56 sm:h-64 object-cover rounded-lg shadow-md mb-4 border border-transparent hover:border-blue-500 transition"
-          whileHover={{ scale: 1.05 }}
-          key={selectedImage}
-        />
-
-        {/* Image Gallery Thumbnails */}
-        {images.length > 1 && (
-          <div className="relative flex gap-2 mb-6 overflow-x-auto pb-2">
-            {images.map((img, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedImage(index)}
-                className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition ${
-                  selectedImage === index ? 'border-blue-500' : 'border-transparent opacity-70 hover:opacity-100'
-                }`}
-              >
-                <img src={getImageUrl(img)} alt={`Image ${index + 1}`} className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="relative flex flex-col space-y-4 mb-6 p-4 bg-opacity-30 backdrop-blur-lg rounded-lg">
-          {[
-            { icon: CalendarIcon, text: new Date(event.date).toLocaleDateString() },
-            { icon: ClockIcon, text: event.StartTime },
-            { icon: MapPinIcon, text: event.location },
-            { icon: UserIcon, text: event.host },
-            { icon: TagIcon, text: event.eventCategory },
-          ].map((item, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <item.icon className={`h-6 w-6 ${theme.text}`} />
-              <span className={`text-lg ${theme.text}`}>{item.text}</span>
-            </div>
-          ))}
-        </div>
-
-        <p
-          className={`relative text-base sm:text-lg ${theme.textSecondary} mb-6 leading-relaxed`}
+        <motion.div
+          className="grid gap-10 lg:grid-cols-2"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          {event.description}
-        </p>
-
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          {canBook ? (
-            <button
-              onClick={handleNavigateToBooking}
-              className="w-full sm:w-auto bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition transform hover:scale-105"
+          {/* Image gallery */}
+          <div>
+            <motion.div
+              className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl shadow-black/20"
+              whileHover={{ scale: 1.01 }}
             >
-              Book Now
-            </button>
-          ) : (
-            <button
-              disabled
-              className="relative bg-gray-400 cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-lg border-2 border-transparent"
-              title="Booking unavailable for requested or inactive events"
-            >
-              Booking Unavailable
-            </button>
-          )}
+              <img
+                src={mainImage}
+                alt={event.title || 'Event image'}
+                className="h-72 w-full object-cover sm:h-96"
+                key={selectedImage}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              {event.eventStatus && (
+                <span className="absolute left-5 top-5 rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold text-slate-900 backdrop-blur">
+                  {event.eventStatus}
+                </span>
+              )}
+            </motion.div>
 
-          <div className="text-right">
-            <p className={`text-sm ${theme.textSecondary}`}>Hosted by:</p>
-            <p className={`text-lg font-semibold ${theme.text}`}>{event.host}</p>
+            {images.length > 1 && (
+              <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+                {images.map((img, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-300 ${
+                      selectedImage === index
+                        ? 'border-brand-500 shadow-lg shadow-brand-500/30 scale-105'
+                        : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={getImageUrl(img)} alt={`Image ${index + 1}`} className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      </motion.div>
+
+          {/* Info */}
+          <div>
+            <motion.span
+              className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-4 py-1.5 text-sm font-semibold text-brand-600 dark:text-brand-400"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <TagIcon className="h-4 w-4" />
+              {event.eventCategory}
+            </motion.span>
+
+            <motion.h1
+              className={`mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl ${theme.text}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              {event.title || 'Untitled Event'}
+            </motion.h1>
+
+            <motion.div
+              className={`mt-8 space-y-4 rounded-3xl ${theme.card} border ${theme.border} p-6`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              {details.map(({ icon: Icon, label, text }, index) => (
+                <motion.div
+                  key={index}
+                  className="flex items-center gap-4"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.35 + index * 0.08 }}
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-brand-400/15">
+                    <Icon className="h-5 w-5 text-brand-500" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
+                    <p className={`font-medium ${theme.text}`}>{text}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.p
+              className={`mt-6 text-base leading-relaxed sm:text-lg ${theme.textSecondary}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              {event.description}
+            </motion.p>
+
+            <motion.div
+              className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              {canBook ? (
+                <motion.button
+                  onClick={handleNavigateToBooking}
+                  className="btn-primary group flex-1"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <TicketIcon className="h-5 w-5" />
+                  Book Now
+                </motion.button>
+              ) : (
+                <button
+                  disabled
+                  className="flex-1 cursor-not-allowed rounded-xl bg-slate-400/60 px-6 py-3.5 font-semibold text-white"
+                  title="Booking unavailable for requested or inactive events"
+                >
+                  Booking Unavailable
+                </button>
+              )}
+              <div className="rounded-2xl border border-dashed border-brand-500/40 px-6 py-3 text-center">
+                <p className="text-xs text-slate-400">Hosted by</p>
+                <p className={`font-display text-lg font-bold ${theme.text}`}>{event.host}</p>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };
