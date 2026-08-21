@@ -8,8 +8,8 @@
     "dev": "nodemon BackEnd/server.js",
     "start": "node BackEnd/server.js",
     "seed": "node BackEnd/seed.js",
-    "test": "node --test BackEnd/tests/*.test.js",
-    "test:watch": "node --test --watch BackEnd/tests/*.test.js"
+    "test": "node --test --experimental-test-module-mocks BackEnd/tests/*.test.js",
+    "test:watch": "node --test --watch --experimental-test-module-mocks BackEnd/tests/*.test.js"
   },
   "keywords": [],
   "author": "",

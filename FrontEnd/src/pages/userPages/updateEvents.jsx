@@ -58,7 +58,7 @@ const UpdateEvent = () => {
           date: data.date ? data.date.slice(0, 10) : '',
           StartTime: data.StartTime || '',
           location: data.location || '',
-          images: data.images || (data.image ? [data.image] : []),
+          images: Array.isArray(data.image) ? data.image : data.image ? [data.image] : [],
           eventType: data.eventType || 'Public',
           eventCategory: data.eventCategory || 'Concert',
           host: data.host || '',

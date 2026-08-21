@@ -16,7 +16,7 @@ const useGetMyEvents = () => {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`/api/event/my-events/${currentUser._id}`, {
+        const res = await fetch(`/api/event/my-events`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
