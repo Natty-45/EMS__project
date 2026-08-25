@@ -76,6 +76,7 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   process.env.CLIENT_URL,
   "http://localhost:5173",
+  "https://ems-project-fkmp-eta.vercel.app",
 ].filter(Boolean);
 
 app.use(

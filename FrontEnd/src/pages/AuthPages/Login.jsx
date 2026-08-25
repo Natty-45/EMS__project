@@ -133,6 +133,57 @@ export default function Login() {
               Forgot your password?
             </Link>
           </div>
+
+          {/* Demo Credentials for Project Showcase */}
+          <div className="relative mt-6 rounded-2xl border border-dashed border-brand-400/40 bg-brand-500/5 p-5">
+            <h3 className="mb-3 text-center text-sm font-bold uppercase tracking-wider text-brand-500">
+              🎓 Demo Credentials — Project Showcase
+            </h3>
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => setFormData({ username: 'superadmin', password: 'Super@1234' })}
+                className="group flex w-full items-center justify-between rounded-xl bg-white/5 px-4 py-2.5 text-left transition-all hover:bg-brand-500/10 dark:bg-white/[0.03]"
+              >
+                <div>
+                  <span className="text-xs font-semibold text-brand-500">Super Admin</span>
+                  <p className="text-sm font-mono text-slate-600 dark:text-slate-400">superadmin / Super@1234</p>
+                </div>
+                <span className="rounded-lg bg-brand-500/10 px-2.5 py-1 text-xs font-semibold text-brand-500 opacity-0 transition-opacity group-hover:opacity-100">
+                  Click to fill
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ username: 'admin', password: 'Admin@1234' })}
+                className="group flex w-full items-center justify-between rounded-xl bg-white/5 px-4 py-2.5 text-left transition-all hover:bg-brand-500/10 dark:bg-white/[0.03]"
+              >
+                <div>
+                  <span className="text-xs font-semibold text-brand-500">Admin</span>
+                  <p className="text-sm font-mono text-slate-600 dark:text-slate-400">admin / Admin@1234</p>
+                </div>
+                <span className="rounded-lg bg-brand-500/10 px-2.5 py-1 text-xs font-semibold text-brand-500 opacity-0 transition-opacity group-hover:opacity-100">
+                  Click to fill
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ username: 'alice', password: 'User@1234' })}
+                className="group flex w-full items-center justify-between rounded-xl bg-white/5 px-4 py-2.5 text-left transition-all hover:bg-brand-500/10 dark:bg-white/[0.03]"
+              >
+                <div>
+                  <span className="text-xs font-semibold text-brand-500">Regular User</span>
+                  <p className="text-sm font-mono text-slate-600 dark:text-slate-400">alice / User@1234</p>
+                </div>
+                <span className="rounded-lg bg-brand-500/10 px-2.5 py-1 text-xs font-semibold text-brand-500 opacity-0 transition-opacity group-hover:opacity-100">
+                  Click to fill
+                </span>
+              </button>
+            </div>
+            <p className="mt-3 text-center text-xs text-slate-400">
+              Click any role to auto-fill, then press Login
+            </p>
+          </div>
         </div>
       </motion.div>
     </div>
