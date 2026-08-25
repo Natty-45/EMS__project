@@ -5,8 +5,7 @@ import toast from 'react-hot-toast';
 
 const SocketContext = createContext(null);
 
-// Backend URL for websockets. In dev it defaults to localhost;
-// in production set VITE_SOCKET_URL to your Render backend URL.
+// In dev the proxy handles /api; in production point directly to Render.
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://ems-project-4tmn.onrender.com';
 
 export const useSocket = () => useContext(SocketContext);
