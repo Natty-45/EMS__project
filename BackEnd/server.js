@@ -5,6 +5,7 @@ import authRoute from "./routes/auth.route.js";
 import eventRoute from "./routes/event.route.js";
 import userRoute from "./routes/user.route.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "http";
@@ -70,6 +71,28 @@ io.on('connection', (socket) => {
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+
+// CORS (frontend on Vercel talks to this API)
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:5173",
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // allow requests with no origin (curl, Render health checks, same-origin via proxy)
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() });
+});
+
 
 app.use("/uploads", express.static(path.join("uploads")));
 app.use("/api/auth", authRoute);

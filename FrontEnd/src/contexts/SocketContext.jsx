@@ -5,6 +5,10 @@ import toast from 'react-hot-toast';
 
 const SocketContext = createContext(null);
 
+// Backend URL for websockets. In dev it defaults to localhost;
+// in production set VITE_SOCKET_URL to your Render backend URL.
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
+
 export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
@@ -25,7 +29,7 @@ export const SocketProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const newSocket = io('http://localhost:8000', {
+    const newSocket = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
     });
