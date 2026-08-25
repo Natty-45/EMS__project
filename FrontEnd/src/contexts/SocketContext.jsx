@@ -7,7 +7,7 @@ const SocketContext = createContext(null);
 
 // Backend URL for websockets. In dev it defaults to localhost;
 // in production set VITE_SOCKET_URL to your Render backend URL.
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://ems-project-4tmn.onrender.com';
 
 export const useSocket = () => useContext(SocketContext);
 

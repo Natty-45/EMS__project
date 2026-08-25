@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://YOUR-BACKEND-URL.onrender.com/api/$1"
+      "destination": "https://ems-project-4tmn.onrender.com/api/$1"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "https://YOUR-BACKEND-URL.onrender.com/uploads/$1"
+      "destination": "https://ems-project-4tmn.onrender.com/uploads/$1"
     },
     {
       "source": "/(.*)",
